@@ -12,6 +12,7 @@ class QListWidget;
 class QListWidgetItem;
 class QMediaPlayer;
 class QAudioOutput;
+class QSplitter;
 
 class MainWindow : public QMainWindow
 {
@@ -33,16 +34,19 @@ private slots:
 
 private:
     void loadLyrics(const QString &audioPath);
+    void parseLrc(const QString &path);
+    void parseVtt(const QString &path);
 
     QLabel *m_titleLabel;
     QLabel *m_artistLabel;
-    QLabel *m_lyricsLabel;
     QPushButton *m_playBtn;
     QPushButton *m_openBtn;
     QSlider *m_progressSlider;
     QListWidget *m_playlist;
+    QListWidget *m_lyricsWidget;
     QMediaPlayer *m_player;
     QAudioOutput *m_audioOutput;
+    QSplitter *m_splitter;
     bool m_isPlaying;
 
     QVector<qint64> m_lyricTimes;

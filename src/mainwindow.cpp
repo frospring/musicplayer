@@ -14,24 +14,23 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMediaMetaData>
+#include <QSplitter>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_isPlaying(false), m_currentLyricIndex(-1)
 {
     setWindowTitle("音乐播放器");
-    resize(500, 400);
+    resize(700, 500);
 
     auto *central = new QWidget(this);
     setCentralWidget(central);
 
-    auto *layout = new QVBoxLayout(central);
-    layout->setSpacing(6);
+    auto *mainLayout = new QVBoxLayout(central);
+    mainLayout->setSpacing(6);
+    mainLayout->setContentsMargins(8, 8, 8, 8);
 
     m_titleLabel = new QLabel("未选择歌曲", this);
     m_artistLabel = new QLabel("", this);
-    m_lyricsLabel = new QLabel("暂无歌词", this);
-    m_lyricsLabel->setWordWrap(true);
-    m_lyricsLabel->setAlignment(Qt::AlignCenter);
 
     m_playBtn = new QPushButton("播放", this);
     m_openBtn = new QPushButton("打开文件", this);
@@ -39,21 +38,38 @@ MainWindow::MainWindow(QWidget *parent)
     m_progressSlider = new QSlider(Qt::Horizontal, this);
     m_progressSlider->setRange(0, 0);
 
+    m_lyricsWidget = new QListWidget(this);
+    m_lyricsWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    m_lyricsWidget->setFocusPolicy(Qt::NoFocus);
+    m_lyricsWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_lyricsWidget->setStyleSheet(
+        "QListWidget { font-size: 14px; background: transparent; border: none; }"
+        "QListWidget::item { padding: 4px 8px; }"
+        "QListWidget::item:!selected { color: #888; }");
+
     m_playlist = new QListWidget(this);
+    m_playlist->setMaximumHeight(150);
+
+    m_splitter = new QSplitter(Qt::Vertical, this);
+    m_splitter->addWidget(m_lyricsWidget);
+    m_splitter->addWidget(m_playlist);
+    m_splitter->setStretchFactor(0, 3);
+    m_splitter->setStretchFactor(1, 1);
 
     auto *infoLayout = new QVBoxLayout;
+    infoLayout->setSpacing(2);
     infoLayout->addWidget(m_titleLabel);
     infoLayout->addWidget(m_artistLabel);
 
     auto *btnLayout = new QHBoxLayout;
     btnLayout->addWidget(m_openBtn);
     btnLayout->addWidget(m_playBtn);
+    btnLayout->addStretch();
 
-    layout->addLayout(infoLayout);
-    layout->addWidget(m_lyricsLabel);
-    layout->addLayout(btnLayout);
-    layout->addWidget(m_progressSlider);
-    layout->addWidget(m_playlist);
+    mainLayout->addLayout(infoLayout);
+    mainLayout->addLayout(btnLayout);
+    mainLayout->addWidget(m_progressSlider);
+    mainLayout->addWidget(m_splitter, 1);
 
     m_player = new QMediaPlayer(this);
     m_audioOutput = new QAudioOutput(this);
@@ -123,9 +139,18 @@ void MainWindow::onPositionChanged(qint64 pos)
         }
     }
 
-    if (idx != m_currentLyricIndex && idx >= 0) {
+    if (idx != m_currentLyricIndex) {
         m_currentLyricIndex = idx;
-        m_lyricsLabel->setText(m_lyricTexts[idx]);
+        if (idx >= 0 && idx < m_lyricsWidget->count()) {
+            m_lyricsWidget->item(idx)->setSelected(true);
+            m_lyricsWidget->scrollToItem(m_lyricsWidget->item(idx), QAbstractItemView::PositionAtCenter);
+        }
+        for (int i = 0; i < m_lyricsWidget->count(); ++i) {
+            auto *item = m_lyricsWidget->item(i);
+            QFont f = item->font();
+            f.setBold(i == idx);
+            item->setFont(f);
+        }
     }
 }
 
@@ -165,22 +190,10 @@ void MainWindow::onMetaDataChanged()
     }
 }
 
-void MainWindow::loadLyrics(const QString &audioPath)
+void MainWindow::parseLrc(const QString &path)
 {
-    m_lyricTimes.clear();
-    m_lyricTexts.clear();
-    m_currentLyricIndex = -1;
-
-    m_artistLabel->setText("");
-
-    QFileInfo fi(audioPath);
-    QString lrcPath = fi.absolutePath() + "/" + fi.completeBaseName() + ".lrc";
-
-    QFile file(lrcPath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_lyricsLabel->setText("暂无歌词");
-        return;
-    }
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 
     QTextStream in(&file);
     while (!in.atEnd()) {
@@ -203,13 +216,100 @@ void MainWindow::loadLyrics(const QString &audioPath)
             }
         }
     }
-
     file.close();
+}
 
-    if (m_lyricTimes.isEmpty()) {
-        m_lyricsLabel->setText("无歌词");
-    } else {
-        m_lyricsLabel->setText(m_lyricTexts.first());
+void MainWindow::parseVtt(const QString &path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+    QTextStream in(&file);
+    bool inHeader = true;
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (inHeader) {
+            if (line.contains("-->")) inHeader = false;
+            else continue;
+        }
+        if (line.isEmpty()) continue;
+
+        if (line.contains("-->")) {
+            QStringList parts = line.split("-->");
+            if (parts.size() != 2) continue;
+
+            auto parseTime = [](const QString &s) -> qint64 {
+                QString t = s.trimmed();
+                int h = 0, m = 0;
+                double sec = 0;
+                int c1 = t.indexOf(':');
+                int c2 = t.lastIndexOf(':');
+                if (c1 == c2) {
+                    m = t.left(c1).toInt();
+                    sec = t.mid(c1 + 1).toDouble();
+                } else {
+                    h = t.left(c1).toInt();
+                    m = t.mid(c1 + 1, c2 - c1 - 1).toInt();
+                    sec = t.mid(c2 + 1).toDouble();
+                }
+                return static_cast<qint64>(h * 3600000 + m * 60000 + sec * 1000);
+            };
+
+            qint64 startMs = parseTime(parts[0]);
+            if (!in.atEnd()) {
+                QString text = in.readLine().trimmed();
+                m_lyricTimes.append(startMs);
+                m_lyricTexts.append(text);
+            }
+        }
+    }
+    file.close();
+}
+
+void MainWindow::loadLyrics(const QString &audioPath)
+{
+    m_lyricTimes.clear();
+    m_lyricTexts.clear();
+    m_currentLyricIndex = -1;
+
+    m_lyricsWidget->clear();
+
+    QFileInfo fi(audioPath);
+    QString baseDir = fi.absolutePath();
+    QString baseName = fi.completeBaseName();
+
+    QStringList candidates = {
+        baseDir + "/" + baseName + ".lrc",
+        baseDir + "/" + baseName + ".vtt",
+        baseDir + "/" + baseName + ".zh.vtt",
+        baseDir + "/" + baseName + ".zho.vtt",
+    };
+
+    bool loaded = false;
+    for (const auto &candidate : candidates) {
+        if (QFile::exists(candidate)) {
+            if (candidate.endsWith(".lrc", Qt::CaseInsensitive)) {
+                parseLrc(candidate);
+            } else {
+                parseVtt(candidate);
+            }
+            loaded = true;
+            break;
+        }
+    }
+
+    if (!loaded || m_lyricTimes.isEmpty()) {
+        m_lyricsWidget->addItem("暂无歌词");
+        return;
+    }
+
+    for (const auto &text : m_lyricTexts) {
+        auto *item = new QListWidgetItem(text, m_lyricsWidget);
+        item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
+    }
+
+    if (!m_lyricTexts.isEmpty()) {
+        m_lyricsWidget->item(0)->setSelected(true);
     }
 }
 
