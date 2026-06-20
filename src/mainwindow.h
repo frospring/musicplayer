@@ -29,6 +29,7 @@ private slots:
     void onDurationChanged(qint64 dur);
     void onSliderMoved(int val);
     void onItemDoubleClicked(QListWidgetItem *item);
+    void onMetaDataChanged();
 
 private:
     void loadLyrics(const QString &audioPath);

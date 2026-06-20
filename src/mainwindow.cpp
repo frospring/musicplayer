@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QTextStream>
+#include <QMediaMetaData>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_isPlaying(false), m_currentLyricIndex(-1)
@@ -65,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::onDurationChanged);
     connect(m_progressSlider, &QSlider::sliderMoved, this, &MainWindow::onSliderMoved);
     connect(m_playlist, &QListWidget::itemDoubleClicked, this, &MainWindow::onItemDoubleClicked);
+    connect(m_player, &QMediaPlayer::metaDataChanged, this, &MainWindow::onMetaDataChanged);
 }
 
 void MainWindow::onOpenFile()
@@ -137,11 +139,39 @@ void MainWindow::onSliderMoved(int val)
     m_player->setPosition(val);
 }
 
+void MainWindow::onMetaDataChanged()
+{
+    auto meta = m_player->metaData();
+
+    QString title = meta.value(QMediaMetaData::Title).toString();
+    if (!title.isEmpty()) {
+        m_titleLabel->setText(title);
+    }
+
+    QString artist = meta.value(QMediaMetaData::AlbumArtist).toString();
+    if (artist.isEmpty()) {
+        artist = meta.value(QMediaMetaData::ContributingArtist).toString();
+    }
+    if (artist.isEmpty()) {
+        artist = meta.value(QMediaMetaData::LeadPerformer).toString();
+    }
+    QString album = meta.value(QMediaMetaData::AlbumTitle).toString();
+    if (!artist.isEmpty() && !album.isEmpty()) {
+        m_artistLabel->setText(artist + " — " + album);
+    } else if (!artist.isEmpty()) {
+        m_artistLabel->setText(artist);
+    } else if (!album.isEmpty()) {
+        m_artistLabel->setText(album);
+    }
+}
+
 void MainWindow::loadLyrics(const QString &audioPath)
 {
     m_lyricTimes.clear();
     m_lyricTexts.clear();
     m_currentLyricIndex = -1;
+
+    m_artistLabel->setText("");
 
     QFileInfo fi(audioPath);
     QString lrcPath = fi.absolutePath() + "/" + fi.completeBaseName() + ".lrc";
