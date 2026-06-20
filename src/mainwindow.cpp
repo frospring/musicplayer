@@ -11,9 +11,11 @@
 #include <QFileDialog>
 #include <QUrl>
 #include <QFileInfo>
+#include <QFile>
+#include <QTextStream>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_isPlaying(false)
+    : QMainWindow(parent), m_isPlaying(false), m_currentLyricIndex(-1)
 {
     setWindowTitle("音乐播放器");
     resize(500, 400);
@@ -108,6 +110,21 @@ void MainWindow::onPositionChanged(qint64 pos)
     if (!m_progressSlider->isSliderDown()) {
         m_progressSlider->setValue(static_cast<int>(pos));
     }
+
+    if (m_lyricTimes.isEmpty()) return;
+
+    int idx = m_lyricTimes.size() - 1;
+    for (int i = 0; i < m_lyricTimes.size(); ++i) {
+        if (pos < m_lyricTimes[i]) {
+            idx = i - 1;
+            break;
+        }
+    }
+
+    if (idx != m_currentLyricIndex && idx >= 0) {
+        m_currentLyricIndex = idx;
+        m_lyricsLabel->setText(m_lyricTexts[idx]);
+    }
 }
 
 void MainWindow::onDurationChanged(qint64 dur)
@@ -120,6 +137,52 @@ void MainWindow::onSliderMoved(int val)
     m_player->setPosition(val);
 }
 
+void MainWindow::loadLyrics(const QString &audioPath)
+{
+    m_lyricTimes.clear();
+    m_lyricTexts.clear();
+    m_currentLyricIndex = -1;
+
+    QFileInfo fi(audioPath);
+    QString lrcPath = fi.absolutePath() + "/" + fi.completeBaseName() + ".lrc";
+
+    QFile file(lrcPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        m_lyricsLabel->setText("暂无歌词");
+        return;
+    }
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        if (line.startsWith('[') && line.contains(']')) {
+            int close = line.indexOf(']');
+            QString timeStr = line.mid(1, close - 1);
+            QString text = line.mid(close + 1);
+
+            int colon = timeStr.indexOf(':');
+            if (colon > 0) {
+                int min = timeStr.left(colon).toInt();
+                double sec = timeStr.mid(colon + 1).toDouble();
+                qint64 ms = static_cast<qint64>(min * 60000 + sec * 1000);
+
+                m_lyricTimes.append(ms);
+                m_lyricTexts.append(text);
+            }
+        }
+    }
+
+    file.close();
+
+    if (m_lyricTimes.isEmpty()) {
+        m_lyricsLabel->setText("无歌词");
+    } else {
+        m_lyricsLabel->setText(m_lyricTexts.first());
+    }
+}
+
 void MainWindow::onItemDoubleClicked(QListWidgetItem *item)
 {
     if (!item) return;
@@ -129,6 +192,8 @@ void MainWindow::onItemDoubleClicked(QListWidgetItem *item)
 
     QFileInfo fi(path);
     m_titleLabel->setText(fi.completeBaseName());
+
+    loadLyrics(path);
 
     m_player->play();
 }

@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QVector>
+#include <QStringList>
 
 class QLabel;
 class QPushButton;
@@ -29,6 +31,8 @@ private slots:
     void onItemDoubleClicked(QListWidgetItem *item);
 
 private:
+    void loadLyrics(const QString &audioPath);
+
     QLabel *m_titleLabel;
     QLabel *m_artistLabel;
     QLabel *m_lyricsLabel;
@@ -39,6 +43,10 @@ private:
     QMediaPlayer *m_player;
     QAudioOutput *m_audioOutput;
     bool m_isPlaying;
+
+    QVector<qint64> m_lyricTimes;
+    QStringList m_lyricTexts;
+    int m_currentLyricIndex;
 };
 
 #endif
