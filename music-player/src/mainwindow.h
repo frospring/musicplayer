@@ -36,7 +36,7 @@ private:
 
     QLabel *m_titleLabel;
     QLabel *m_artistLabel;
-    QLabel *m_lyricsLabel;
+    QListWidget *m_lyricsList;
     QPushButton *m_playBtn;
     QPushButton *m_openBtn;
     QSlider *m_progressSlider;

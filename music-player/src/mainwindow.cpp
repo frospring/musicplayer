@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_isPlaying(false), m_currentLyricIndex(-1)
 {
     setWindowTitle("音乐播放器");
-    resize(500, 400);
+    resize(500, 550);
 
     auto *central = new QWidget(this);
     setCentralWidget(central);
@@ -30,9 +30,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_titleLabel = new QLabel("未选择歌曲", this);
     m_artistLabel = new QLabel("", this);
-    m_lyricsLabel = new QLabel("暂无歌词", this);
-    m_lyricsLabel->setWordWrap(true);
-    m_lyricsLabel->setAlignment(Qt::AlignCenter);
+    m_lyricsList = new QListWidget(this);
+    m_lyricsList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_lyricsList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_lyricsList->setSelectionMode(QAbstractItemView::NoSelection);
+    m_lyricsList->setFocusPolicy(Qt::NoFocus);
+    m_lyricsList->setStyleSheet("QListWidget { border: none; background: transparent; } QListWidget::item { padding: 6px; }");
+    m_lyricsList->setFixedHeight(180);
+    auto *noLyricItem = new QListWidgetItem("暂无歌词");
+    noLyricItem->setTextAlignment(Qt::AlignCenter);
+    noLyricItem->setFlags(noLyricItem->flags() & ~Qt::ItemIsSelectable);
+    m_lyricsList->addItem(noLyricItem);
 
     m_playBtn = new QPushButton("播放", this);
     m_openBtn = new QPushButton("打开文件", this);
@@ -51,10 +59,10 @@ MainWindow::MainWindow(QWidget *parent)
     btnLayout->addWidget(m_playBtn);
 
     layout->addLayout(infoLayout);
-    layout->addWidget(m_lyricsLabel);
     layout->addLayout(btnLayout);
     layout->addWidget(m_progressSlider);
-    layout->addWidget(m_playlist);
+    layout->addWidget(m_playlist, 1);
+    layout->addWidget(m_lyricsList);
 
     m_player = new QMediaPlayer(this);
     m_audioOutput = new QAudioOutput(this);
@@ -124,9 +132,21 @@ void MainWindow::onPositionChanged(qint64 pos)
         }
     }
 
-    if (idx != m_currentLyricIndex && idx >= 0) {
+    if (idx != m_currentLyricIndex && idx >= 0 && idx < m_lyricsList->count()) {
+        if (m_currentLyricIndex >= 0 && m_currentLyricIndex < m_lyricsList->count()) {
+            auto *prevItem = m_lyricsList->item(m_currentLyricIndex);
+            prevItem->setForeground(m_lyricsList->palette().color(QPalette::Text));
+            QFont prevFont = prevItem->font();
+            prevFont.setBold(false);
+            prevItem->setFont(prevFont);
+        }
         m_currentLyricIndex = idx;
-        m_lyricsLabel->setText(m_lyricTexts[idx]);
+        auto *curItem = m_lyricsList->item(idx);
+        curItem->setForeground(QColor("#1db954"));
+        QFont curFont = curItem->font();
+        curFont.setBold(true);
+        curItem->setFont(curFont);
+        m_lyricsList->scrollToItem(curItem, QAbstractItemView::PositionAtCenter);
     }
 }
 
@@ -171,6 +191,7 @@ void MainWindow::loadLyrics(const QString &audioPath)
     m_lyricTimes.clear();
     m_lyricTexts.clear();
     m_currentLyricIndex = -1;
+    m_lyricsList->clear();
 
     m_artistLabel->setText("");
 
@@ -185,12 +206,18 @@ void MainWindow::loadLyrics(const QString &audioPath)
         QDir dir(dirPath);
         QStringList vttFiles = dir.entryList({baseName + "*.vtt"}, QDir::Files, QDir::Name);
         if (vttFiles.isEmpty()) {
-            m_lyricsLabel->setText("暂无歌词");
+            auto *plItem = new QListWidgetItem("暂无歌词");
+            plItem->setTextAlignment(Qt::AlignCenter);
+            plItem->setFlags(plItem->flags() & ~Qt::ItemIsSelectable);
+            m_lyricsList->addItem(plItem);
             return;
         }
         file.setFileName(dirPath + "/" + vttFiles.first());
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            m_lyricsLabel->setText("暂无歌词");
+            auto *plItem2 = new QListWidgetItem("暂无歌词");
+            plItem2->setTextAlignment(Qt::AlignCenter);
+            plItem2->setFlags(plItem2->flags() & ~Qt::ItemIsSelectable);
+            m_lyricsList->addItem(plItem2);
             return;
         }
         isVtt = true;
@@ -247,9 +274,23 @@ void MainWindow::loadLyrics(const QString &audioPath)
     file.close();
 
     if (m_lyricTimes.isEmpty()) {
-        m_lyricsLabel->setText("无歌词");
+        auto *plItem = new QListWidgetItem("无歌词");
+        plItem->setTextAlignment(Qt::AlignCenter);
+        plItem->setFlags(plItem->flags() & ~Qt::ItemIsSelectable);
+        m_lyricsList->addItem(plItem);
     } else {
-        m_lyricsLabel->setText(m_lyricTexts.first());
+        for (const auto &text : m_lyricTexts) {
+            auto *lyricItem = new QListWidgetItem(text);
+            lyricItem->setTextAlignment(Qt::AlignCenter);
+            lyricItem->setFlags(lyricItem->flags() & ~Qt::ItemIsSelectable);
+            m_lyricsList->addItem(lyricItem);
+        }
+        m_currentLyricIndex = 0;
+        auto *firstItem = m_lyricsList->item(0);
+        QFont boldFont = firstItem->font();
+        boldFont.setBold(true);
+        firstItem->setFont(boldFont);
+        firstItem->setForeground(QColor("#1db954"));
     }
 }
 
