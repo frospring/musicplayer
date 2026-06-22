@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMediaMetaData>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_isPlaying(false), m_currentLyricIndex(-1)
@@ -174,32 +175,71 @@ void MainWindow::loadLyrics(const QString &audioPath)
     m_artistLabel->setText("");
 
     QFileInfo fi(audioPath);
-    QString lrcPath = fi.absolutePath() + "/" + fi.completeBaseName() + ".lrc";
+    QString dirPath = fi.absolutePath();
+    QString baseName = fi.completeBaseName();
 
-    QFile file(lrcPath);
+    QFile file(dirPath + "/" + baseName + ".lrc");
+    bool isVtt = false;
+
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_lyricsLabel->setText("暂无歌词");
-        return;
+        QDir dir(dirPath);
+        QStringList vttFiles = dir.entryList({baseName + "*.vtt"}, QDir::Files, QDir::Name);
+        if (vttFiles.isEmpty()) {
+            m_lyricsLabel->setText("暂无歌词");
+            return;
+        }
+        file.setFileName(dirPath + "/" + vttFiles.first());
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            m_lyricsLabel->setText("暂无歌词");
+            return;
+        }
+        isVtt = true;
     }
 
     QTextStream in(&file);
-    while (!in.atEnd()) {
-        QString line = in.readLine().trimmed();
-        if (line.isEmpty()) continue;
 
-        if (line.startsWith('[') && line.contains(']')) {
-            int close = line.indexOf(']');
-            QString timeStr = line.mid(1, close - 1);
-            QString text = line.mid(close + 1);
+    if (isVtt) {
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (line.isEmpty() || line == "WEBVTT") continue;
+            if (!line.contains("-->") && line.contains(':')) continue;
 
-            int colon = timeStr.indexOf(':');
-            if (colon > 0) {
-                int min = timeStr.left(colon).toInt();
-                double sec = timeStr.mid(colon + 1).toDouble();
-                qint64 ms = static_cast<qint64>(min * 60000 + sec * 1000);
+            if (line.contains("-->")) {
+                int arrowPos = line.indexOf("-->");
+                QString startStr = line.left(arrowPos).trimmed();
+                QStringList parts = startStr.split(':');
+                if (parts.size() == 3) {
+                    qint64 ms = parts[0].toInt() * 3600000
+                              + parts[1].toInt() * 60000
+                              + static_cast<qint64>(parts[2].toDouble() * 1000);
+                    m_lyricTimes.append(ms);
 
-                m_lyricTimes.append(ms);
-                m_lyricTexts.append(text);
+                    if (!in.atEnd()) {
+                        QString text = in.readLine().trimmed();
+                        m_lyricTexts.append(text);
+                    }
+                }
+            }
+        }
+    } else {
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (line.isEmpty()) continue;
+
+            if (line.startsWith('[') && line.contains(']')) {
+                int close = line.indexOf(']');
+                QString timeStr = line.mid(1, close - 1);
+                QString text = line.mid(close + 1);
+
+                int colon = timeStr.indexOf(':');
+                if (colon > 0) {
+                    int min = timeStr.left(colon).toInt();
+                    double sec = timeStr.mid(colon + 1).toDouble();
+                    qint64 ms = static_cast<qint64>(min * 60000 + sec * 1000);
+
+                    m_lyricTimes.append(ms);
+                    m_lyricTexts.append(text);
+                }
             }
         }
     }
