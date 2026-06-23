@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    engine.load(QUrl::fromLocalFile("qml/Main.qml"));
+    engine.loadFromModule("MusicPlayer", "Main");
 
     if (engine.rootObjects().isEmpty())
         return -1;
