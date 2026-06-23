@@ -1,19 +1,34 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 4.3.4)
 project(MusicPlayer LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Quick Multimedia)
 
-add_executable(music-player
+qt_standard_project_setup()
+
+qt_add_executable(music-player
     src/main.cpp
-    src/mainwindow.h
-    src/mainwindow.cpp
+    src/playercontroller.h
+    src/playercontroller.cpp
+    src/lyricsparser.h
+    src/lyricsparser.cpp
+    src/lyricsmodel.h
+    src/lyricsmodel.cpp
+    src/playermodel.h
+    src/playermodel.cpp
+)
+
+qt_add_qml_module(music-player
+    URI MusicPlayer
+    VERSION 1.0
+    QML_FILES
+        qml/Main.qml
+    NO_RESOURCE_TARGET_PATH
 )
 
 target_link_libraries(music-player PRIVATE
-    Qt6::Widgets
+    Qt6::Quick
     Qt6::Multimedia
 )
