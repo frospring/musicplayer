@@ -119,10 +119,26 @@ ApplicationWindow {
             }
         }
 
-        // 歌词+播放列表 (上下分屏)
+        // 播放列表+歌词 (左右分屏)
         SplitView {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            orientation: Qt.Horizontal
+
+            ListView {
+                id: playlistView
+                SplitView.preferredWidth: 200
+                SplitView.fillHeight: true
+                model: playlistModel
+                clip: true
+
+                delegate: ItemDelegate {
+                    width: ListView.view.width
+                    text: model.fileName
+                    highlighted: index === playlistModel.currentIndex
+                    onClicked: playlistModel.currentIndex = index
+                }
+            }
 
             ListView {
                 id: lyricsView
@@ -140,21 +156,6 @@ ApplicationWindow {
                     font.pixelSize: model.isCurrent ? 18 : 14
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
-                }
-            }
-
-            ListView {
-                id: playlistView
-                SplitView.fillWidth: true
-                SplitView.fillHeight: true
-                model: playlistModel
-                clip: true
-
-                delegate: ItemDelegate {
-                    width: ListView.view.width
-                    text: model.fileName
-                    highlighted: index === playlistModel.currentIndex
-                    onClicked: playlistModel.currentIndex = index
                 }
             }
         }
