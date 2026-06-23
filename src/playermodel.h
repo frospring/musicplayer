@@ -13,6 +13,7 @@ class PlaylistModel : public QAbstractListModel
 
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)
     Q_PROPERTY(int count READ count NOTIFY countChanged FINAL)
+    Q_PROPERTY(QUrl currentFileUrl READ currentFileUrl NOTIFY currentIndexChanged FINAL)
 
 public:
     enum Roles {
@@ -29,6 +30,7 @@ public:
     int currentIndex() const;
     void setCurrentIndex(int idx);
     int count() const;
+    QUrl currentFileUrl() const;
 
     Q_INVOKABLE void addFiles(const QList<QUrl> &urls);
     Q_INVOKABLE void remove(int index);

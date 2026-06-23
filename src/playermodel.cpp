@@ -46,6 +46,13 @@ void PlaylistModel::setCurrentIndex(int idx)
 
 int PlaylistModel::count() const { return m_files.size(); }
 
+QUrl PlaylistModel::currentFileUrl() const
+{
+    if (m_currentIndex < 0 || m_currentIndex >= m_files.size())
+        return {};
+    return QUrl::fromLocalFile(m_files[m_currentIndex]);
+}
+
 void PlaylistModel::addFiles(const QList<QUrl> &urls)
 {
     if (urls.isEmpty()) return;

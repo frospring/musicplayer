@@ -28,9 +28,7 @@ ApplicationWindow {
         target: playlistModel
         function onCurrentIndexChanged() {
             if (playlistModel.currentIndex < 0) return
-            var idx = playlistModel.index(playlistModel.currentIndex, 0)
-            var path = playlistModel.data(idx, PlaylistModel.FilePathRole)
-            player.source = "file://" + path
+            player.source = playlistModel.currentFileUrl
             player.play()
         }
     }
