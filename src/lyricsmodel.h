@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <QUrl>
 #include <QVector>
+#include <QtQml/qqmlregistration.h>
 #include "lyricsparser.h"
 
 class LyricsModel : public QAbstractListModel
@@ -28,7 +29,7 @@ public:
     int currentIndex() const;
     void setCurrentIndex(int idx);
 
-    Q_INVOKABLE void loadLyrics(const QUrl &audioUrl, const QString &embeddedText);
+    Q_INVOKABLE void loadLyrics(const QUrl &audioUrl);
     Q_INVOKABLE void updatePosition(qint64 positionMs);
 
 signals:

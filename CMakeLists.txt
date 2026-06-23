@@ -32,3 +32,5 @@ target_link_libraries(music-player PRIVATE
     Qt6::Quick
     Qt6::Multimedia
 )
+
+target_include_directories(music-player PRIVATE src)

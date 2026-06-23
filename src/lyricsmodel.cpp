@@ -46,16 +46,16 @@ void LyricsModel::setCurrentIndex(int idx)
     m_currentIndex = idx;
     emit currentIndexChanged();
 
-    // 通知QML刷新高亮: 旧行和新行都需要更新
+    // 通知QML刷新高亮
     if (idx >= 0 && idx < m_entries.size())
-        emit dataChanged(index(idx), index(idx), {IsCurrentRole});
+        emit dataChanged(index(idx), index(idx), QList<int>{IsCurrentRole});
     if (idx - 1 >= 0)
-        emit dataChanged(index(idx - 1), index(idx - 1), {IsCurrentRole});
+        emit dataChanged(index(idx - 1), index(idx - 1), QList<int>{IsCurrentRole});
     if (idx + 1 < m_entries.size())
-        emit dataChanged(index(idx + 1), index(idx + 1), {IsCurrentRole});
+        emit dataChanged(index(idx + 1), index(idx + 1), QList<int>{IsCurrentRole});
 }
 
-void LyricsModel::loadLyrics(const QUrl &audioUrl, const QString &embeddedText)
+void LyricsModel::loadLyrics(const QUrl &audioUrl)
 {
     beginResetModel();
     m_entries.clear();
@@ -65,7 +65,6 @@ void LyricsModel::loadLyrics(const QUrl &audioUrl, const QString &embeddedText)
     QFileInfo fi(path);
     QString base = fi.absolutePath() + "/" + fi.completeBaseName();
 
-    // 按优先级查找外部歌词文件
     QStringList candidates = {
         base + ".lrc",
         base + ".vtt",
@@ -73,21 +72,18 @@ void LyricsModel::loadLyrics(const QUrl &audioUrl, const QString &embeddedText)
         base + ".zho.vtt",
     };
 
-    bool loaded = false;
     for (const auto &candidate : candidates) {
         if (QFile::exists(candidate)) {
             if (candidate.endsWith(".lrc", Qt::CaseInsensitive))
                 m_entries = LyricsParser::parseLrcFile(candidate);
             else
                 m_entries = LyricsParser::parseVttFile(candidate);
-            loaded = true;
             break;
         }
     }
 
-    // 回退到MP3内嵌歌词
-    if (!loaded && !embeddedText.isEmpty())
-        m_entries = LyricsParser::parseText(embeddedText);
+    if (m_entries.isEmpty())
+        m_entries = {LyricEntry{-1, "暂无歌词"}};
 
     endResetModel();
 }

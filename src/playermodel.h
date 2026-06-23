@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <QUrl>
 #include <QStringList>
+#include <QtQml/qqmlregistration.h>
 
 class PlaylistModel : public QAbstractListModel
 {

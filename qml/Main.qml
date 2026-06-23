@@ -39,7 +39,7 @@ ApplicationWindow {
     Connections {
         target: player
         function onSourceChanged() {
-            lyricsModel.loadLyrics(player.source, player.embeddedLyrics)
+            lyricsModel.loadLyrics(player.source)
         }
     }
 
@@ -85,8 +85,6 @@ ApplicationWindow {
             Label { text: player.artist; Layout.fillWidth: true }
             Label { text: "专辑:" }
             Label { text: player.album; Layout.fillWidth: true }
-            Label { text: "内嵌歌词:" }
-            Label { text: player.hasEmbeddedLyrics ? "有" : "无"; Layout.fillWidth: true }
         }
 
         // 播放控制栏

@@ -1,5 +1,6 @@
 // zkw2024051604060
 #include "playercontroller.h"
+#include <QMediaMetaData>
 
 PlayerController::PlayerController(QObject *parent)
     : QObject(parent)
@@ -8,7 +9,6 @@ PlayerController::PlayerController(QObject *parent)
     , m_title("-")
     , m_artist("-")
     , m_album("-")
-    , m_hasEmbeddedLyrics(false)
 {
     m_player->setAudioOutput(m_audioOutput);
 
@@ -20,7 +20,6 @@ PlayerController::PlayerController(QObject *parent)
     connect(m_player, &QMediaPlayer::positionChanged, this, &PlayerController::positionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &PlayerController::durationChanged);
 
-    // 元数据: 读取标题/艺术家/专辑/内嵌歌词
     connect(m_player, &QMediaPlayer::metaDataChanged, this, [this]() {
         auto meta = m_player->metaData();
 
@@ -36,10 +35,6 @@ PlayerController::PlayerController(QObject *parent)
         QString al = meta.value(QMediaMetaData::AlbumTitle).toString();
         m_album = al.isEmpty() ? "-" : al;
 
-        // ID3 USLT 帧 (非同步歌词)
-        m_embeddedLyrics = meta.value(QMediaMetaData::Lyrics).toString();
-        m_hasEmbeddedLyrics = !m_embeddedLyrics.isEmpty();
-
         emit metaDataChanged();
     });
 }
@@ -53,8 +48,6 @@ void PlayerController::setSource(const QUrl &url)
     m_title = "-";
     m_artist = "-";
     m_album = "-";
-    m_embeddedLyrics = "";
-    m_hasEmbeddedLyrics = false;
     m_player->setSource(url);
     emit sourceChanged();
     emit metaDataChanged();
@@ -70,8 +63,6 @@ qint64 PlayerController::duration() const { return m_player->duration(); }
 QString PlayerController::title() const { return m_title; }
 QString PlayerController::artist() const { return m_artist; }
 QString PlayerController::album() const { return m_album; }
-bool PlayerController::hasEmbeddedLyrics() const { return m_hasEmbeddedLyrics; }
-QString PlayerController::embeddedLyrics() const { return m_embeddedLyrics; }
 
 void PlayerController::play() { m_player->play(); }
 void PlayerController::pause() { m_player->pause(); }

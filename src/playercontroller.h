@@ -19,8 +19,6 @@ class PlayerController : public QObject
     Q_PROPERTY(QString title READ title NOTIFY metaDataChanged FINAL)
     Q_PROPERTY(QString artist READ artist NOTIFY metaDataChanged FINAL)
     Q_PROPERTY(QString album READ album NOTIFY metaDataChanged FINAL)
-    Q_PROPERTY(bool hasEmbeddedLyrics READ hasEmbeddedLyrics NOTIFY metaDataChanged FINAL)
-    Q_PROPERTY(QString embeddedLyrics READ embeddedLyrics NOTIFY metaDataChanged FINAL)
 
 public:
     explicit PlayerController(QObject *parent = nullptr);
@@ -34,8 +32,6 @@ public:
     QString title() const;
     QString artist() const;
     QString album() const;
-    bool hasEmbeddedLyrics() const;
-    QString embeddedLyrics() const;
 
 public slots:
     void play();
@@ -57,6 +53,4 @@ private:
     QString m_title;
     QString m_artist;
     QString m_album;
-    QString m_embeddedLyrics;
-    bool m_hasEmbeddedLyrics;
 };
