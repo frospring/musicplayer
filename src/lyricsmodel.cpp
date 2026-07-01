@@ -43,16 +43,14 @@ int LyricsModel::currentIndex() const { return m_currentIndex; }
 void LyricsModel::setCurrentIndex(int idx)
 {
     if (idx == m_currentIndex) return;
+    int oldIndex = m_currentIndex;
     m_currentIndex = idx;
     emit currentIndexChanged();
 
-    // 通知QML刷新高亮
     if (idx >= 0 && idx < m_entries.size())
         emit dataChanged(index(idx), index(idx), QList<int>{IsCurrentRole});
-    if (idx - 1 >= 0)
-        emit dataChanged(index(idx - 1), index(idx - 1), QList<int>{IsCurrentRole});
-    if (idx + 1 < m_entries.size())
-        emit dataChanged(index(idx + 1), index(idx + 1), QList<int>{IsCurrentRole});
+    if (oldIndex >= 0 && oldIndex < m_entries.size())
+        emit dataChanged(index(oldIndex), index(oldIndex), QList<int>{IsCurrentRole});
 }
 
 void LyricsModel::loadLyrics(const QUrl &audioUrl)
