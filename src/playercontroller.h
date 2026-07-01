@@ -45,6 +45,7 @@ signals:
     void positionChanged();
     void durationChanged();
     void metaDataChanged();
+    void ended();
 
 private:
     QMediaPlayer *m_player;

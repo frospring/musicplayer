@@ -20,6 +20,11 @@ PlayerController::PlayerController(QObject *parent)
     connect(m_player, &QMediaPlayer::positionChanged, this, &PlayerController::positionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &PlayerController::durationChanged);
 
+    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::EndOfMedia)
+            emit ended();
+    });
+
     connect(m_player, &QMediaPlayer::metaDataChanged, this, [this]() {
         auto meta = m_player->metaData();
 

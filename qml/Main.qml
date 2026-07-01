@@ -42,6 +42,12 @@ ApplicationWindow {
         function onSourceChanged() {
             lyricsModel.loadLyrics(player.source)
         }
+        function onEnded() {
+            if (playlistModel.count <= 1) return
+            var next = playlistModel.currentIndex + 1
+            if (next >= playlistModel.count) next = 0
+            playlistModel.currentIndex = next
+        }
     }
 
     // positionChanged 触发歌词行更新
