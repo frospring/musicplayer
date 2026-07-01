@@ -605,12 +605,6 @@ ApplicationWindow {
         }
     }
 
-    // ——— Button Base Style ———
-
-    Component.onCompleted: {
-        // Apply flat button style to all control buttons
-    }
-
     FileDialog {
         id: fileDialog
         title: "选择音乐文件"
