@@ -142,13 +142,13 @@ ApplicationWindow {
                     }
 
                     Button {
-                        text: playlistPanel.visible ? "✕" : "☰"
+                        text: "☰"
                         flat: true
                         font.pixelSize: 18
-                        onClicked: playlistPanel.visible = !playlistPanel.visible
+                        onClicked: playlistPanel.visible = true
                         contentItem: Text {
                             text: parent.text
-                            color: playlistPanel.visible ? "#e94560" : "#aaa"
+                            color: parent.hovered ? "#e94560" : "#aaa"
                             font.pixelSize: 18
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -211,12 +211,31 @@ ApplicationWindow {
 
                         Label {
                             Layout.alignment: Qt.AlignHCenter
-                            text: hasMusic() ? "暂无歌词" : "拖入文件 或 点击右上角 ＋ 添加"
+                            text: hasMusic() ? "暂无歌词" : "拖入音乐文件 或 点击下方按钮添加"
                             font.pixelSize: 14
                             color: "#555"
                         }
 
-                        Item { Layout.preferredHeight: 8 }
+                        Button {
+                            visible: !hasMusic()
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "打开文件"
+                            onClicked: fileDialog.open()
+                            contentItem: Text {
+                                text: parent.text
+                                color: "#fff"
+                                font.pixelSize: 14
+                                font.bold: true
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            background: Rectangle {
+                                implicitWidth: 120
+                                implicitHeight: 36
+                                color: parent.hovered ? "#ff6b81" : "#e94560"
+                                radius: 8
+                            }
+                        }
                     }
                 }
 
@@ -464,6 +483,24 @@ ApplicationWindow {
             }
         }
 
+        // ==== 播放列表遮罩 ====
+        Rectangle {
+            id: playlistOverlay
+            visible: playlistPanel.visible
+            anchors.fill: parent
+            color: "#00000060"
+            z: 1
+
+            Behavior on opacity {
+                NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: playlistPanel.visible = false
+            }
+        }
+
         // ==== 播放列表面板 (右侧滑出) ====
         Rectangle {
             id: playlistPanel
@@ -474,19 +511,12 @@ ApplicationWindow {
             color: "#12121f"
             border.color: "#ffffff08"
             border.width: 1
+            z: 2
 
-            x: parent.width
+            x: visible ? parent.width - width : parent.width
             Behavior on x {
                 NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
             }
-
-            states: [
-                State {
-                    name: "open"
-                    when: playlistPanel.visible
-                    PropertyChanges { target: playlistPanel; x: parent.width - width }
-                }
-            ]
 
             ColumnLayout {
                 anchors.fill: parent
@@ -508,14 +538,14 @@ ApplicationWindow {
                     }
                     Item { Layout.fillWidth: true }
                     Button {
-                        text: "清空"
+                        text: "✕"
                         flat: true
-                        font.pixelSize: 12
-                        onClicked: playlistModel.clear()
+                        font.pixelSize: 14
+                        onClicked: playlistPanel.visible = false
                         contentItem: Text {
                             text: parent.text
-                            color: parent.hovered ? "#e94560" : "#666"
-                            font.pixelSize: 12
+                            color: parent.hovered ? "#fff" : "#888"
+                            font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
@@ -533,7 +563,10 @@ ApplicationWindow {
                     delegate: ItemDelegate {
                         width: ListView.view.width
                         highlighted: index === playlistModel.currentIndex
-                        onClicked: playlistModel.currentIndex = index
+                        onClicked: {
+                            playlistModel.currentIndex = index
+                            playlistPanel.visible = false
+                        }
 
                         contentItem: RowLayout {
                             spacing: 8

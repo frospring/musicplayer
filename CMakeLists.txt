@@ -25,6 +25,7 @@ qt_add_qml_module(music-player
     VERSION 1.0
     QML_FILES
         qml/Main.qml
+    NO_CACHEGEN
     NO_RESOURCE_TARGET_PATH
 )
 
