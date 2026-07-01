@@ -123,6 +123,15 @@ ApplicationWindow {
                 onMoved: player.seek(value)
             }
 
+            Slider {
+                id: volumeSlider
+                Layout.preferredWidth: 100
+                from: 0
+                to: 1
+                value: player.volume
+                onMoved: player.volume = value
+            }
+
             Label {
                 text: formatTime(player.position) + " / " + formatTime(player.duration)
             }

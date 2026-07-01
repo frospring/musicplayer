@@ -69,6 +69,16 @@ QString PlayerController::title() const { return m_title; }
 QString PlayerController::artist() const { return m_artist; }
 QString PlayerController::album() const { return m_album; }
 
+float PlayerController::volume() const { return m_audioOutput->volume(); }
+
+void PlayerController::setVolume(float vol)
+{
+    vol = qBound(0.0f, vol, 1.0f);
+    if (qAbs(vol - m_audioOutput->volume()) < 0.001f) return;
+    m_audioOutput->setVolume(vol);
+    emit volumeChanged();
+}
+
 void PlayerController::play() { m_player->play(); }
 void PlayerController::pause() { m_player->pause(); }
 void PlayerController::toggle()
