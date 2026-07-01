@@ -88,9 +88,15 @@ QVector<LyricEntry> LyricsParser::parseVttFile(const QString &path)
             if (parts.size() < 1) continue;
 
             qint64 startMs = parseTimestamp(parts[0]);
-            if (in.atEnd()) break;
 
-            QString text = in.readLine().trimmed();
+            QString text;
+            while (!in.atEnd()) {
+                QString nextLine = in.readLine().trimmed();
+                if (nextLine.isEmpty()) break;
+                if (!text.isEmpty()) text += "\n";
+                text += nextLine;
+            }
+
             LyricEntry entry;
             entry.timestampMs = startMs;
             entry.text = text;
