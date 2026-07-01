@@ -27,7 +27,10 @@ ApplicationWindow {
     Connections {
         target: playlistModel
         function onCurrentIndexChanged() {
-            if (playlistModel.currentIndex < 0) return
+            if (playlistModel.currentIndex < 0) {
+                player.pause()
+                return
+            }
             player.source = playlistModel.currentFileUrl
             player.play()
         }
