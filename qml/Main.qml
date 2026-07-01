@@ -82,7 +82,16 @@ ApplicationWindow {
         }
     }
 
-    ColumnLayout {
+    DropArea {
+        anchors.fill: parent
+        onDropped: {
+            var urls = []
+            for (var i = 0; i < drop.urls.length; i++)
+                urls.push(drop.urls[i])
+            playlistModel.addFiles(urls)
+        }
+
+        ColumnLayout {
         anchors.fill: parent
         anchors.margins: 8
         spacing: 6
@@ -203,6 +212,7 @@ ApplicationWindow {
                 }
             }
         }
+    }
     }
 
     FileDialog {
