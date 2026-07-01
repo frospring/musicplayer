@@ -92,127 +92,127 @@ ApplicationWindow {
         }
 
         ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: 8
-        spacing: 6
+            anchors.fill: parent
+            anchors.margins: 8
+            spacing: 6
 
-        // 工具栏
-        RowLayout {
-            Button {
-                text: "打开文件"
-                onClicked: fileDialog.open()
+            // 工具栏
+            RowLayout {
+                Button {
+                    text: "打开文件"
+                    onClicked: fileDialog.open()
+                }
+                Item { Layout.fillWidth: true }
             }
-            Item { Layout.fillWidth: true }
-        }
 
-        // ID3标签审查区
-        GridLayout {
-            columns: 4
-            columnSpacing: 12
-            rowSpacing: 2
-            Label { text: "标题:" }
-            Label { text: player.title; Layout.fillWidth: true }
-            Label { text: "艺术家:" }
-            Label { text: player.artist; Layout.fillWidth: true }
-            Label { text: "专辑:" }
-            Label { text: player.album; Layout.fillWidth: true }
-        }
-
-        // 播放控制栏
-        RowLayout {
-            Button {
-                text: "⏮"
-                onClicked: playlistModel.currentIndex = Math.max(0, playlistModel.currentIndex - 1)
+            // ID3标签审查区
+            GridLayout {
+                columns: 4
+                columnSpacing: 12
+                rowSpacing: 2
+                Label { text: "标题:" }
+                Label { text: player.title; Layout.fillWidth: true }
+                Label { text: "艺术家:" }
+                Label { text: player.artist; Layout.fillWidth: true }
+                Label { text: "专辑:" }
+                Label { text: player.album; Layout.fillWidth: true }
             }
-            Button {
-                text: player.playing ? "⏸" : "▶"
-                onClicked: {
-                    if (playlistModel.currentIndex < 0 && playlistModel.count > 0)
-                        playlistModel.currentIndex = 0
-                    else
-                        player.toggle()
+
+            // 播放控制栏
+            RowLayout {
+                Button {
+                    text: "⏮"
+                    onClicked: playlistModel.currentIndex = Math.max(0, playlistModel.currentIndex - 1)
+                }
+                Button {
+                    text: player.playing ? "⏸" : "▶"
+                    onClicked: {
+                        if (playlistModel.currentIndex < 0 && playlistModel.count > 0)
+                            playlistModel.currentIndex = 0
+                        else
+                            player.toggle()
+                    }
+                }
+                Button {
+                    text: "⏭"
+                    onClicked: playlistModel.currentIndex = Math.min(playlistModel.count - 1, playlistModel.currentIndex + 1)
+                }
+
+                Slider {
+                    id: progressSlider
+                    Layout.fillWidth: true
+                    from: 0
+                    to: player.duration
+                    value: player.position
+                    onMoved: player.seek(value)
+                }
+
+                Slider {
+                    id: volumeSlider
+                    Layout.preferredWidth: 100
+                    from: 0
+                    to: 1
+                    value: player.volume
+                    onMoved: player.volume = value
+                }
+
+                Button {
+                    text: "↻"
+                    highlighted: playMode === modeLoop
+                    onClicked: playMode = playMode === modeLoop ? modeSingle : modeLoop
+                }
+                Button {
+                    text: "🔀"
+                    highlighted: playMode === modeShuffle
+                    onClicked: playMode = playMode === modeShuffle ? modeLoop : modeShuffle
+                }
+
+                Label {
+                    text: formatTime(player.position) + " / " + formatTime(player.duration)
                 }
             }
-            Button {
-                text: "⏭"
-                onClicked: playlistModel.currentIndex = Math.min(playlistModel.count - 1, playlistModel.currentIndex + 1)
-            }
 
-            Slider {
-                id: progressSlider
+            // 播放列表+歌词 (左右分屏)
+            SplitView {
                 Layout.fillWidth: true
-                from: 0
-                to: player.duration
-                value: player.position
-                onMoved: player.seek(value)
-            }
+                Layout.fillHeight: true
+                orientation: Qt.Horizontal
 
-            Slider {
-                id: volumeSlider
-                Layout.preferredWidth: 100
-                from: 0
-                to: 1
-                value: player.volume
-                onMoved: player.volume = value
-            }
+                ListView {
+                    id: playlistView
+                    SplitView.preferredWidth: 200
+                    SplitView.fillHeight: true
+                    model: playlistModel
+                    clip: true
 
-            Button {
-                text: "↻"
-                highlighted: playMode === modeLoop
-                onClicked: playMode = playMode === modeLoop ? modeSingle : modeLoop
-            }
-            Button {
-                text: "🔀"
-                highlighted: playMode === modeShuffle
-                onClicked: playMode = playMode === modeShuffle ? modeLoop : modeShuffle
-            }
-
-            Label {
-                text: formatTime(player.position) + " / " + formatTime(player.duration)
-            }
-        }
-
-        // 播放列表+歌词 (左右分屏)
-        SplitView {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            orientation: Qt.Horizontal
-
-            ListView {
-                id: playlistView
-                SplitView.preferredWidth: 200
-                SplitView.fillHeight: true
-                model: playlistModel
-                clip: true
-
-                delegate: ItemDelegate {
-                    width: ListView.view.width
-                    text: model.fileName
-                    highlighted: index === playlistModel.currentIndex
-                    onClicked: playlistModel.currentIndex = index
+                    delegate: ItemDelegate {
+                        width: ListView.view.width
+                        text: model.fileName
+                        highlighted: index === playlistModel.currentIndex
+                        onClicked: playlistModel.currentIndex = index
+                    }
                 }
-            }
 
-            ListView {
-                id: lyricsView
-                SplitView.fillWidth: true
-                SplitView.fillHeight: true
-                model: lyricsModel
-                clip: true
-                spacing: 4
+                ListView {
+                    id: lyricsView
+                    SplitView.fillWidth: true
+                    SplitView.fillHeight: true
+                    model: lyricsModel
+                    clip: true
+                    spacing: 4
 
-                delegate: Text {
-                    width: ListView.view.width
-                    text: model.lyricText
-                    color: model.isCurrent ? "#fff" : "#888"
-                    font.bold: model.isCurrent
-                    font.pixelSize: model.isCurrent ? 18 : 14
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
+                    delegate: Text {
+                        width: ListView.view.width
+                        text: model.lyricText
+                        color: model.isCurrent ? "#fff" : "#888"
+                        font.bold: model.isCurrent
+                        font.pixelSize: model.isCurrent ? 18 : 14
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.Wrap
+                    }
                 }
             }
         }
-    }
     }
 
     FileDialog {
