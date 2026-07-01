@@ -13,7 +13,7 @@ ApplicationWindow {
     minimumHeight: 400
     title: player.title !== "-" ? player.title + " - 音乐播放器" : "音乐播放器"
     visible: true
-    color: "#0f0f1a"
+    color: "#f0f2f5"
 
     PlayerController { id: player }
     PlaylistModel { id: playlistModel }
@@ -24,15 +24,19 @@ ApplicationWindow {
     readonly property int modeShuffle: 2
     property int playMode: 0
 
+    property string statusText: {
+        if (playlistModel.count === 0)
+            return "拖入音乐文件或点击下方按钮添加"
+        if (player.title === "-" && player.artist === "-")
+            return "加载中..."
+        return player.artist !== "-" ? player.artist : "未知艺术家"
+    }
+
     function formatTime(ms) {
         var sec = Math.floor(ms / 1000)
         var min = Math.floor(sec / 60)
         sec = sec % 60
         return min + ":" + (sec < 10 ? "0" : "") + sec
-    }
-
-    function hasMusic() {
-        return player.title !== "-" || player.artist !== "-"
     }
 
     // ——— Connections ———
@@ -104,40 +108,79 @@ ApplicationWindow {
         Item {
             id: mainContent
             anchors.fill: parent
-            anchors.leftMargin: 24
-            anchors.rightMargin: 24
-            anchors.topMargin: 20
-            anchors.bottomMargin: 16
+            anchors.leftMargin: 32
+            anchors.rightMargin: 32
+            anchors.topMargin: 24
+            anchors.bottomMargin: 18
 
             ColumnLayout {
                 anchors.fill: parent
                 spacing: 0
 
-                // ==== 顶部：标题/艺术家 ====
+                // ==== 顶部 ====
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 52
+                    Layout.preferredHeight: 56
                     spacing: 0
 
-                    ColumnLayout {
+                    RowLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: 12
 
-                        Label {
-                            Layout.fillWidth: true
-                            text: hasMusic() ? player.title : "音乐播放器"
-                            font.pixelSize: 20
-                            font.bold: true
-                            color: "#f0f0f0"
-                            elide: Text.ElideRight
+                        Rectangle {
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 40
+                            radius: 10
+                            color: "#14b8a6"
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "♬"
+                                font.pixelSize: 18
+                                color: "#fff"
+                            }
                         }
 
-                        Label {
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            text: hasMusic() ? player.artist : "拖入音频文件或点击按钮添加音乐"
-                            font.pixelSize: 13
-                            color: "#7f8c8d"
-                            elide: Text.ElideRight
+                            spacing: 1
+
+                            Label {
+                                Layout.fillWidth: true
+                                text: playlistModel.count > 0 && player.title !== "-" ? player.title : "音乐播放器"
+                                font.pixelSize: 20
+                                font.bold: true
+                                color: "#1a1a2e"
+                                elide: Text.ElideRight
+                            }
+
+                            Label {
+                                Layout.fillWidth: true
+                                text: statusText
+                                font.pixelSize: 13
+                                color: "#8899aa"
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+
+                    Button {
+                        text: "＋"
+                        flat: true
+                        font.pixelSize: 18
+                        onClicked: fileDialog.open()
+                        contentItem: Text {
+                            text: parent.text
+                            color: parent.hovered ? "#0d9488" : "#14b8a6"
+                            font.pixelSize: 18
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 36
+                            implicitHeight: 36
+                            color: parent.hovered ? "#14b8a610" : "transparent"
+                            radius: 8
                         }
                     }
 
@@ -148,78 +191,70 @@ ApplicationWindow {
                         onClicked: playlistPanel.visible = true
                         contentItem: Text {
                             text: parent.text
-                            color: parent.hovered ? "#e94560" : "#aaa"
+                            color: parent.hovered ? "#0d9488" : "#666"
                             font.pixelSize: 18
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
                         background: Rectangle {
-                            color: parent.hovered ? "#ffffff10" : "transparent"
-                            radius: 8
-                        }
-                    }
-
-                    Button {
-                        text: "＋"
-                        flat: true
-                        font.pixelSize: 16
-                        onClicked: fileDialog.open()
-                        ToolTip.text: "添加音乐"
-                        ToolTip.visible: hovered
-                        contentItem: Text {
-                            text: parent.text
-                            color: parent.hovered ? "#e94560" : "#888"
-                            font.pixelSize: 16
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            color: parent.hovered ? "#ffffff10" : "transparent"
+                            implicitWidth: 36
+                            implicitHeight: 36
+                            color: parent.hovered ? "#00000008" : "transparent"
                             radius: 8
                         }
                     }
                 }
 
-                Item { Layout.preferredHeight: 4 }
+                Item { Layout.preferredHeight: 16 }
 
-                // ==== 中间：占位/拖放提示 ====
-                Item {
+                // ==== 空状态 ====
+                Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    visible: !hasMusic() || lyricsModel.rowCount() === 0
+                    visible: lyricsModel.rowCount() === 0
+                    color: "#ffffff"
+                    radius: 14
+                    border.color: "#e8e8ec"
+                    border.width: 1
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 12
+                        spacing: 16
 
                         Rectangle {
                             Layout.alignment: Qt.AlignHCenter
-                            width: 80
-                            height: 80
-                            radius: 40
-                            color: "#ffffff0a"
-                            border.color: "#ffffff15"
-                            border.width: 1
+                            width: 72
+                            height: 72
+                            radius: 16
+                            color: "#14b8a612"
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "♬"
-                                font.pixelSize: 32
-                                color: hasMusic() ? "#555" : "#888"
+                                font.pixelSize: 28
+                                color: "#14b8a6"
                             }
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignHCenter
-                            text: hasMusic() ? "暂无歌词" : "拖入音乐文件 或 点击下方按钮添加"
-                            font.pixelSize: 14
+                            text: playlistModel.count === 0 ? "还没有添加音乐哦" : "暂无歌词"
+                            font.pixelSize: 16
                             color: "#555"
                         }
 
-                        Button {
-                            visible: !hasMusic()
+                        Label {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "打开文件"
+                            visible: playlistModel.count === 0
+                            text: "拖入文件 或 点击按钮开始"
+                            font.pixelSize: 13
+                            color: "#aaa"
+                        }
+
+                        Button {
+                            visible: playlistModel.count === 0
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "打开音乐文件"
                             onClicked: fileDialog.open()
                             contentItem: Text {
                                 text: parent.text
@@ -230,23 +265,23 @@ ApplicationWindow {
                                 verticalAlignment: Text.AlignVCenter
                             }
                             background: Rectangle {
-                                implicitWidth: 120
-                                implicitHeight: 36
-                                color: parent.hovered ? "#ff6b81" : "#e94560"
-                                radius: 8
+                                implicitWidth: 140
+                                implicitHeight: 40
+                                color: parent.hovered ? "#0d9488" : "#14b8a6"
+                                radius: 10
                             }
                         }
                     }
                 }
 
-                // ==== 中间：歌词区 ====
+                // ==== 歌词区 ====
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    visible: hasMusic() && lyricsModel.rowCount() > 0
-                    color: "#ffffff04"
+                    visible: lyricsModel.rowCount() > 0
+                    color: "#ffffff"
                     radius: 14
-                    border.color: "#ffffff08"
+                    border.color: "#e8e8ec"
                     border.width: 1
 
                     ListView {
@@ -254,36 +289,34 @@ ApplicationWindow {
                         anchors.fill: parent
                         anchors.leftMargin: 4
                         anchors.rightMargin: 4
-                        anchors.topMargin: 10
-                        anchors.bottomMargin: 10
+                        anchors.topMargin: 12
+                        anchors.bottomMargin: 12
                         model: lyricsModel
                         clip: true
-                        spacing: 6
+                        spacing: 8
                         flickDeceleration: 3000
                         maximumFlickVelocity: 1200
 
                         delegate: Item {
                             width: ListView.view.width
-                            height: lyricText.implicitHeight + 8
+                            height: lyricText.implicitHeight + 10
 
                             Rectangle {
                                 visible: model.isCurrent
                                 anchors.fill: parent
-                                anchors.leftMargin: 12
-                                anchors.rightMargin: 12
-                                color: "#e9456015"
-                                radius: 8
-                                border.color: "#e9456030"
-                                border.width: 1
+                                anchors.leftMargin: 20
+                                anchors.rightMargin: 20
+                                color: "#14b8a60c"
+                                radius: 10
                             }
 
                             Text {
                                 id: lyricText
                                 anchors.centerIn: parent
-                                width: parent.width - 40
+                                width: parent.width - 60
                                 text: model.lyricText
-                                color: model.isCurrent ? "#ffffff" : "#4a4a5a"
-                                font.pixelSize: model.isCurrent ? 22 : 15
+                                color: model.isCurrent ? "#14b8a6" : "#bbb"
+                                font.pixelSize: model.isCurrent ? 24 : 16
                                 font.bold: model.isCurrent
                                 horizontalAlignment: Text.AlignHCenter
                                 wrapMode: Text.Wrap
@@ -301,9 +334,9 @@ ApplicationWindow {
                     }
                 }
 
-                Item { Layout.preferredHeight: 8 }
+                Item { Layout.preferredHeight: 12 }
 
-                // ==== 底部：进度条 ====
+                // ==== 进度条 ====
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 10
@@ -311,7 +344,7 @@ ApplicationWindow {
                     Label {
                         text: formatTime(player.position)
                         font.pixelSize: 11
-                        color: "#666"
+                        color: "#999"
                         font.family: "monospace"
                     }
 
@@ -331,23 +364,23 @@ ApplicationWindow {
                             width: parent.availableWidth
                             height: implicitHeight
                             radius: 2
-                            color: "#ffffff15"
+                            color: "#e8e8ec"
 
                             Rectangle {
                                 width: parent.visualPosition * parent.width
                                 height: parent.height
                                 radius: 2
-                                color: "#e94560"
+                                color: "#14b8a6"
                             }
                         }
 
                         handle: Rectangle {
                             x: parent.leftPadding + parent.visualPosition * (parent.availableWidth - width)
                             y: parent.topPadding + parent.availableHeight / 2 - height / 2
-                            implicitWidth: 12
-                            implicitHeight: 12
-                            radius: 6
-                            color: parent.pressed ? "#ff6b81" : "#e94560"
+                            implicitWidth: 14
+                            implicitHeight: 14
+                            radius: 7
+                            color: parent.pressed ? "#0d9488" : "#14b8a6"
                             visible: parent.hovered || parent.pressed
                         }
                     }
@@ -355,34 +388,60 @@ ApplicationWindow {
                     Label {
                         text: formatTime(player.duration)
                         font.pixelSize: 11
-                        color: "#666"
+                        color: "#999"
                         font.family: "monospace"
                     }
                 }
 
-                Item { Layout.preferredHeight: 12 }
+                Item { Layout.preferredHeight: 14 }
 
-                // ==== 底部：控制栏 ====
+                // ==== 控制栏 ====
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: 8
 
                     Button {
                         text: "⏮"
                         flat: true
                         font.pixelSize: 16
                         onClicked: playlistModel.currentIndex = Math.max(0, playlistModel.currentIndex - 1)
+                        contentItem: Text {
+                            text: parent.text
+                            color: parent.hovered ? "#14b8a6" : "#666"
+                            font.pixelSize: 16
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 36
+                            implicitHeight: 36
+                            color: parent.hovered ? "#00000006" : "transparent"
+                            radius: 18
+                        }
                     }
 
                     Button {
                         text: player.playing ? "⏸" : "▶"
                         flat: true
-                        font.pixelSize: 24
+                        font.pixelSize: 26
                         onClicked: {
                             if (playlistModel.currentIndex < 0 && playlistModel.count > 0)
                                 playlistModel.currentIndex = 0
                             else
                                 player.toggle()
+                        }
+                        contentItem: Text {
+                            text: parent.text
+                            color: "#14b8a6"
+                            font.pixelSize: 26
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 44
+                            implicitHeight: 44
+                            color: parent.hovered ? "#14b8a612" : "#14b8a60c"
+                            radius: 22
                         }
                     }
 
@@ -391,6 +450,19 @@ ApplicationWindow {
                         flat: true
                         font.pixelSize: 16
                         onClicked: playlistModel.currentIndex = Math.min(playlistModel.count - 1, playlistModel.currentIndex + 1)
+                        contentItem: Text {
+                            text: parent.text
+                            color: parent.hovered ? "#14b8a6" : "#666"
+                            font.pixelSize: 16
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 36
+                            implicitHeight: 36
+                            color: parent.hovered ? "#00000006" : "transparent"
+                            radius: 18
+                        }
                     }
 
                     Item { Layout.fillWidth: true }
@@ -400,6 +472,19 @@ ApplicationWindow {
                         flat: true
                         font.pixelSize: 14
                         onClicked: volumeSlider.value = volumeSlider.value === 0 ? 0.7 : 0
+                        contentItem: Text {
+                            text: parent.text
+                            color: parent.hovered ? "#14b8a6" : "#888"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 32
+                            implicitHeight: 32
+                            color: parent.hovered ? "#00000006" : "transparent"
+                            radius: 16
+                        }
                     }
 
                     Slider {
@@ -418,13 +503,13 @@ ApplicationWindow {
                             width: parent.availableWidth
                             height: implicitHeight
                             radius: 2
-                            color: "#ffffff10"
+                            color: "#e8e8ec"
 
                             Rectangle {
                                 width: parent.visualPosition * parent.width
                                 height: parent.height
                                 radius: 2
-                                color: "#aaa"
+                                color: "#14b8a6"
                             }
                         }
 
@@ -434,7 +519,7 @@ ApplicationWindow {
                             implicitWidth: 10
                             implicitHeight: 10
                             radius: 5
-                            color: parent.pressed ? "#ddd" : "#ccc"
+                            color: parent.pressed ? "#0d9488" : "#14b8a6"
                             visible: parent.hovered || parent.pressed
                         }
                     }
@@ -443,14 +528,23 @@ ApplicationWindow {
                         text: "↻"
                         flat: true
                         font.pixelSize: 14
-                        highlighted: playMode === modeLoop || playMode === modeSingle
                         onClicked: playMode = playMode === modeLoop ? modeSingle : modeLoop
                         contentItem: Text {
                             text: parent.text
-                            color: playMode === modeSingle ? "#e94560" : (playMode === modeLoop ? "#ccc" : "#555")
+                            color: {
+                                if (playMode === modeSingle) return "#14b8a6"
+                                if (playMode === modeLoop) return "#555"
+                                return "#ccc"
+                            }
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 32
+                            implicitHeight: 32
+                            color: parent.hovered ? "#00000006" : "transparent"
+                            radius: 16
                         }
                     }
 
@@ -461,23 +555,17 @@ ApplicationWindow {
                         onClicked: playMode = playMode === modeShuffle ? modeLoop : modeShuffle
                         contentItem: Text {
                             text: parent.text
-                            color: playMode === modeShuffle ? "#e94560" : "#555"
+                            color: playMode === modeShuffle ? "#14b8a6" : "#ccc"
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
-                    }
-                }
-
-                // ==== 底部：专辑信息 ====
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: player.album !== "-"
-
-                    Label {
-                        text: "专辑: " + player.album
-                        font.pixelSize: 11
-                        color: "#444"
+                        background: Rectangle {
+                            implicitWidth: 32
+                            implicitHeight: 32
+                            color: parent.hovered ? "#00000006" : "transparent"
+                            radius: 16
+                        }
                     }
                 }
             }
@@ -488,11 +576,11 @@ ApplicationWindow {
             id: playlistOverlay
             visible: playlistPanel.visible
             anchors.fill: parent
-            color: "#00000060"
+            color: "#00000040"
             z: 1
 
             Behavior on opacity {
-                NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                NumberAnimation { duration: 200 }
             }
 
             MouseArea {
@@ -501,15 +589,15 @@ ApplicationWindow {
             }
         }
 
-        // ==== 播放列表面板 (右侧滑出) ====
+        // ==== 播放列表面板 ====
         Rectangle {
             id: playlistPanel
             visible: false
             width: 280
             height: parent.height
             anchors.right: parent.right
-            color: "#12121f"
-            border.color: "#ffffff08"
+            color: "#ffffff"
+            border.color: "#e8e8ec"
             border.width: 1
             z: 2
 
@@ -529,12 +617,12 @@ ApplicationWindow {
                         text: "播放列表"
                         font.pixelSize: 16
                         font.bold: true
-                        color: "#e0e0e0"
+                        color: "#1a1a2e"
                     }
                     Label {
                         text: playlistModel.count + " 首"
                         font.pixelSize: 12
-                        color: "#555"
+                        color: "#aaa"
                     }
                     Item { Layout.fillWidth: true }
                     Button {
@@ -544,7 +632,7 @@ ApplicationWindow {
                         onClicked: playlistPanel.visible = false
                         contentItem: Text {
                             text: parent.text
-                            color: parent.hovered ? "#fff" : "#888"
+                            color: parent.hovered ? "#333" : "#aaa"
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -562,7 +650,6 @@ ApplicationWindow {
 
                     delegate: ItemDelegate {
                         width: ListView.view.width
-                        highlighted: index === playlistModel.currentIndex
                         onClicked: {
                             playlistModel.currentIndex = index
                             playlistPanel.visible = false
@@ -571,33 +658,29 @@ ApplicationWindow {
                         contentItem: RowLayout {
                             spacing: 8
                             Rectangle {
-                                Layout.preferredWidth: 4
-                                Layout.preferredHeight: 28
+                                Layout.preferredWidth: 3
+                                Layout.preferredHeight: 24
                                 radius: 2
-                                color: index === playlistModel.currentIndex ? "#e94560" : "transparent"
+                                color: index === playlistModel.currentIndex ? "#14b8a6" : "transparent"
                             }
-                            ColumnLayout {
+                            Label {
                                 Layout.fillWidth: true
-                                spacing: 1
-                                Label {
-                                    Layout.fillWidth: true
-                                    text: model.fileName
-                                    font.pixelSize: 13
-                                    color: index === playlistModel.currentIndex ? "#f0f0f0" : "#999"
-                                    elide: Text.ElideRight
-                                }
+                                text: model.fileName
+                                font.pixelSize: 13
+                                color: index === playlistModel.currentIndex ? "#14b8a6" : "#555"
+                                elide: Text.ElideRight
                             }
                         }
 
                         background: Rectangle {
                             color: {
                                 if (index === playlistModel.currentIndex)
-                                    return "#e9456012"
+                                    return "#14b8a610"
                                 if (parent.hovered)
-                                    return "#ffffff06"
+                                    return "#00000004"
                                 return "transparent"
                             }
-                            radius: 6
+                            radius: 8
                         }
                     }
                 }
