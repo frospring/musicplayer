@@ -16,6 +16,11 @@ ApplicationWindow {
     PlaylistModel { id: playlistModel }
     LyricsModel { id: lyricsModel }
 
+    readonly property int modeLoop: 0
+    readonly property int modeSingle: 1
+    readonly property int modeShuffle: 2
+    property int playMode: 0
+
     function formatTime(ms) {
         var sec = Math.floor(ms / 1000)
         var min = Math.floor(sec / 60)
@@ -43,10 +48,20 @@ ApplicationWindow {
             lyricsModel.loadLyrics(player.source)
         }
         function onEnded() {
+            if (playMode === modeSingle) {
+                player.seek(0)
+                player.play()
+                return
+            }
             if (playlistModel.count <= 1) return
-            var next = playlistModel.currentIndex + 1
-            if (next >= playlistModel.count) next = 0
-            playlistModel.currentIndex = next
+            if (playMode === modeShuffle) {
+                var ri = Math.floor(Math.random() * playlistModel.count)
+                playlistModel.currentIndex = ri
+            } else {
+                var next = playlistModel.currentIndex + 1
+                if (next >= playlistModel.count) next = 0
+                playlistModel.currentIndex = next
+            }
         }
     }
 
@@ -130,6 +145,17 @@ ApplicationWindow {
                 to: 1
                 value: player.volume
                 onMoved: player.volume = value
+            }
+
+            Button {
+                text: "↻"
+                highlighted: playMode === modeLoop
+                onClicked: playMode = playMode === modeLoop ? modeSingle : modeLoop
+            }
+            Button {
+                text: "🔀"
+                highlighted: playMode === modeShuffle
+                onClicked: playMode = playMode === modeShuffle ? modeLoop : modeShuffle
             }
 
             Label {
