@@ -211,7 +211,7 @@ ApplicationWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    visible: lyricsModel.rowCount() === 0
+                    visible: lyricsModel.count === 0
                     color: "#ffffff"
                     radius: 14
                     border.color: "#e8e8ec"
@@ -278,7 +278,7 @@ ApplicationWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    visible: lyricsModel.rowCount() > 0
+                    visible: lyricsModel.count > 0
                     color: "#ffffff"
                     radius: 14
                     border.color: "#e8e8ec"

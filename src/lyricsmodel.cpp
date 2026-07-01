@@ -40,6 +40,8 @@ QHash<int, QByteArray> LyricsModel::roleNames() const
 
 int LyricsModel::currentIndex() const { return m_currentIndex; }
 
+int LyricsModel::count() const { return m_entries.size(); }
+
 void LyricsModel::setCurrentIndex(int idx)
 {
     if (idx == m_currentIndex) return;
@@ -84,6 +86,7 @@ void LyricsModel::loadLyrics(const QUrl &audioUrl)
         m_entries = {LyricEntry{-1, "暂无歌词"}};
 
     endResetModel();
+    emit countChanged();
 }
 
 void LyricsModel::updatePosition(qint64 positionMs)

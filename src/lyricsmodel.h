@@ -13,6 +13,7 @@ class LyricsModel : public QAbstractListModel
     QML_ELEMENT
 
     Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged FINAL)
+    Q_PROPERTY(int count READ count NOTIFY countChanged FINAL)
 
 public:
     enum Roles {
@@ -28,12 +29,14 @@ public:
 
     int currentIndex() const;
     void setCurrentIndex(int idx);
+    int count() const;
 
     Q_INVOKABLE void loadLyrics(const QUrl &audioUrl);
     Q_INVOKABLE void updatePosition(qint64 positionMs);
 
 signals:
     void currentIndexChanged();
+    void countChanged();
 
 private:
     QVector<LyricEntry> m_entries;
