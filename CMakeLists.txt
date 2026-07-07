@@ -35,3 +35,7 @@ target_link_libraries(music-player PRIVATE
 )
 
 target_include_directories(music-player PRIVATE src)
+
+install(TARGETS music-player DESTINATION bin)
+
+install(FILES music-player.desktop DESTINATION share/applications)

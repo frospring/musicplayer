@@ -583,9 +583,8 @@ ApplicationWindow {
                 NumberAnimation { duration: 200 }
             }
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: playlistPanel.visible = false
+            TapHandler {
+                onTapped: playlistPanel.visible = false
             }
         }
 

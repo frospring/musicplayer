@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Name=MusicPlayer
+Name[zh_CN]=音乐播放器
+Comment=A Qt6-based music player with lyrics support
+Comment[zh_CN]=基于 Qt6 的音乐播放器，支持歌词同步显示
+Exec=music-player
+Icon=audio-x-generic
+Categories=AudioVideo;Audio;Player;Qt;
+Terminal=false
