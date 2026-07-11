@@ -11,10 +11,9 @@ ApplicationWindow {
     visible: true
     color: "#1e1e1e"
 
-    // 文件选择对话框
     FileDialog {
         id: fileDialog
-        title: "选择音频文件"
+        title: "添加音频文件"
         nameFilters: ["音频文件 (*.mp3 *.wav *.flac *.ogg *.m4a)", "所有文件 (*)"]
         fileMode: FileDialog.OpenFiles
         onAccepted: playlistModel.addFiles(selectedFiles)
@@ -25,7 +24,6 @@ ApplicationWindow {
         anchors.margins: 16
         spacing: 10
 
-        // 歌曲标题
         Label {
             text: audioController.title || "未在播放"
             font.pixelSize: 22
@@ -36,7 +34,6 @@ ApplicationWindow {
             elide: Text.ElideRight
         }
 
-        // 歌手 - 专辑
         Label {
             text: {
                 var parts = []
@@ -51,32 +48,91 @@ ApplicationWindow {
             elide: Text.ElideRight
         }
 
-        // 控制按钮
         RowLayout {
             Layout.fillWidth: true
             spacing: 8
 
             Button {
-                text: "打开文件"
+                text: "添加文件"
                 onClicked: fileDialog.open()
             }
 
             Item { Layout.fillWidth: true }
 
             Button {
-                text: audioController.isPlaying ? "暂停" : "播放"
+                enabled: (audioController.hasMedia && !audioController.isPlaying) || (!audioController.hasMedia && playlistModel.count > 0)
                 onClicked: {
                     if (!audioController.hasMedia && playlistModel.count > 0) {
                         playlistModel.currentIndex = 0
                         audioController.playFile(playlistModel.fileUrlAt(0))
                     } else {
-                        audioController.togglePlayPause()
+                        audioController.play()
+                    }
+                }
+
+                contentItem: Column {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    Label {
+                        text: "\u25B6"
+                        font.pixelSize: 18
+                        color: parent.parent.enabled ? "#ffffff" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Label {
+                        text: "Play"
+                        font.pixelSize: 11
+                        color: parent.parent.enabled ? "#cccccc" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+
+            Button {
+                enabled: audioController.isPlaying
+                onClicked: audioController.pause()
+
+                contentItem: Column {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    Label {
+                        text: "\u23F8"
+                        font.pixelSize: 18
+                        color: parent.parent.enabled ? "#ffffff" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Label {
+                        text: "Pause"
+                        font.pixelSize: 11
+                        color: parent.parent.enabled ? "#cccccc" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+
+            Button {
+                enabled: audioController.hasMedia
+                onClicked: audioController.stop()
+
+                contentItem: Column {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    Label {
+                        text: "\u23F9"
+                        font.pixelSize: 18
+                        color: parent.parent.enabled ? "#ffffff" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Label {
+                        text: "Stop"
+                        font.pixelSize: 11
+                        color: parent.parent.enabled ? "#cccccc" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
                     }
                 }
             }
         }
 
-        // 进度条 (拖动时不绑定避免循环)
         Slider {
             id: progressSlider
             Layout.fillWidth: true
@@ -86,7 +142,6 @@ ApplicationWindow {
             onMoved: audioController.seek(value)
         }
 
-        // 时间标签
         RowLayout {
             Layout.fillWidth: true
             Label {
@@ -102,7 +157,6 @@ ApplicationWindow {
             }
         }
 
-        // 错误提示
         Label {
             visible: audioController.errorString !== ""
             text: "错误: " + audioController.errorString
@@ -112,7 +166,6 @@ ApplicationWindow {
             wrapMode: Text.Wrap
         }
 
-        // 播放列表
         Label {
             text: "播放列表"
             font.pixelSize: 14
@@ -153,7 +206,6 @@ ApplicationWindow {
             }
         }
 
-        // 歌词
         Label {
             text: "歌词"
             font.pixelSize: 14
@@ -181,7 +233,6 @@ ApplicationWindow {
                 wrapMode: Text.Wrap
             }
 
-            // 歌词自动滚动到当前行
             Connections {
                 target: audioController
                 function onCurrentLyricIndexChanged() {
@@ -194,7 +245,6 @@ ApplicationWindow {
         }
     }
 
-    // 毫秒 → mm:ss 格式化
     function formatTime(ms) {
         var totalSeconds = Math.floor(ms / 1000)
         var minutes = Math.floor(totalSeconds / 60)

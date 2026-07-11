@@ -35,7 +35,6 @@ int LyricModel::count() const
     return m_lines.size();
 }
 
-// 从后往前查找当前歌词位置
 int LyricModel::indexAtTime(qint64 position) const
 {
     for (int i = m_lines.size() - 1; i >= 0; --i) {
@@ -49,7 +48,6 @@ void LyricModel::loadForAudio(const QString &audioFilePath)
 {
     clear();
 
-    // 使用 FileManager 查找歌词文件
     QString lyricPath = FileManager::findLyricFile(audioFilePath);
     if (lyricPath.isEmpty())
         return;

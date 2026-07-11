@@ -6,8 +6,6 @@
 #include "audioengine.h"
 #include "lyricmodel.h"
 
-// 音频控制器 - 协调 AudioEngine + LyricModel + FileManager
-// 职责: 高级播放控制、元数据提取、歌词同步
 class AudioController : public QObject
 {
     Q_OBJECT
@@ -37,9 +35,11 @@ public:
     qint64 position() const;
     qint64 duration() const;
 
-    // 播放指定文件 (加载歌词 + 异步播放)
     Q_INVOKABLE void playFile(const QUrl &url);
     Q_INVOKABLE void togglePlayPause();
+    Q_INVOKABLE void play();
+    Q_INVOKABLE void pause();
+    Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(qint64 pos);
 
 signals:
@@ -71,7 +71,7 @@ private:
     QString m_album;
     QString m_error;
     int m_currentLyricIndex;
-    bool m_playPending;  // 标记: 媒体加载后自动播放
+    bool m_playPending;
 };
 
 #endif

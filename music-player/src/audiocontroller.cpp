@@ -10,7 +10,6 @@ AudioController::AudioController(AudioEngine *engine, LyricModel *lyricModel,
     , m_currentLyricIndex(-1)
     , m_playPending(false)
 {
-    // 连接引擎信号到控制器处理逻辑
     connect(m_engine, &AudioEngine::stateChanged,
             this, &AudioController::onEngineStateChanged);
     connect(m_engine, &AudioEngine::positionChanged,
@@ -23,7 +22,6 @@ AudioController::AudioController(AudioEngine *engine, LyricModel *lyricModel,
             this, &AudioController::onEngineError);
 }
 
-// ---- 属性访问 ----
 QString AudioController::title() const       { return m_title; }
 QString AudioController::artist() const      { return m_artist; }
 QString AudioController::album() const       { return m_album; }
@@ -35,15 +33,11 @@ QString AudioController::errorString() const { return m_error; }
 qint64 AudioController::position() const     { return m_engine->position(); }
 qint64 AudioController::duration() const     { return m_engine->duration(); }
 
-// ---- 播放控制 ----
-
-// 播放文件: 设置音源 → 加载歌词 → 等待引擎就绪 → 自动播放
 void AudioController::playFile(const QUrl &url)
 {
     m_playPending = true;
     m_engine->setSource(url);
 
-    // 先用文件名作为标题
     m_title = QFileInfo(url.toLocalFile()).fileName();
     m_artist.clear();
     m_album.clear();
@@ -53,7 +47,6 @@ void AudioController::playFile(const QUrl &url)
     emit albumChanged();
     emit hasMediaChanged();
 
-    // 重置并加载歌词
     m_currentLyricIndex = -1;
     emit currentLyricIndexChanged();
     loadLyrics(url);
@@ -67,12 +60,25 @@ void AudioController::togglePlayPause()
         m_engine->play();
 }
 
+void AudioController::play()
+{
+    m_engine->play();
+}
+
+void AudioController::pause()
+{
+    m_engine->pause();
+}
+
+void AudioController::stop()
+{
+    m_engine->stop();
+}
+
 void AudioController::seek(qint64 pos)
 {
     m_engine->seek(pos);
 }
-
-// ---- 引擎信号处理 ----
 
 void AudioController::onEngineStateChanged()
 {
@@ -85,7 +91,6 @@ void AudioController::onEnginePositionChanged()
     updateLyricIndex();
 }
 
-// 引擎媒体就绪 → 根据 m_playPending 决定是否播放
 void AudioController::onEngineLoaded()
 {
     emit durationChanged();
@@ -95,7 +100,6 @@ void AudioController::onEngineLoaded()
     }
 }
 
-// 从媒体元数据中提取标题 / 歌手 / 专辑
 void AudioController::onEngineMetaDataChanged()
 {
     QMediaMetaData meta = m_engine->metaData();
@@ -128,8 +132,6 @@ void AudioController::onEngineError(const QString &error)
     m_playPending = false;
     emit errorOccurred();
 }
-
-// ---- 内部辅助 ----
 
 void AudioController::updateLyricIndex()
 {

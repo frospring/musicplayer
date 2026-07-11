@@ -3,7 +3,6 @@
 #include <QTextStream>
 #include <QRegularExpression>
 
-// 解析 LRC 歌词: 正则匹配 [分钟:秒.百分秒]文本
 QVector<LyricLine> LyricParser::parseLrc(const QString &filePath)
 {
     QVector<LyricLine> lines;
@@ -28,7 +27,6 @@ QVector<LyricLine> LyricParser::parseLrc(const QString &filePath)
     return lines;
 }
 
-// 解析 WebVTT 字幕: 时间戳行 + 下一行为文本
 QVector<LyricLine> LyricParser::parseVtt(const QString &filePath)
 {
     QVector<LyricLine> lines;
@@ -45,7 +43,6 @@ QVector<LyricLine> LyricParser::parseVtt(const QString &filePath)
         if (line == "WEBVTT" || line.isEmpty() || line.startsWith("NOTE"))
             continue;
 
-        // 匹配时间戳: [HH:]MM:SS.mmm --> [HH:]MM:SS.mmm (小时可选)
         QRegularExpression re(
             R"((?:(\d+):)?(\d+):(\d+)\.(\d+)\s*-->\s*(?:(\d+):)?(\d+):(\d+)\.(\d+))");
         auto match = re.match(line);
@@ -55,14 +52,12 @@ QVector<LyricLine> LyricParser::parseVtt(const QString &filePath)
             int s = match.captured(3).toInt();
             int ms = match.captured(4).toInt();
 
-            // 标准化毫秒: 不足3位补全 (如 "50" -> 500ms)
             int msWidth = match.captured(4).length();
             for (int k = msWidth; k < 3; ++k)
                 ms *= 10;
 
             qint64 timeMs = static_cast<qint64>(h * 3600000LL + m * 60000 + s * 1000 + ms);
 
-            // 下一行为文本 (跳过空行)
             int j = i + 1;
             while (j < rawLines.size() && rawLines[j].trimmed().isEmpty())
                 j++;
