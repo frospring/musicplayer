@@ -11,6 +11,18 @@ ApplicationWindow {
     visible: true
     color: "#1e1e1e"
 
+    function playFirst() {
+        playlistModel.currentIndex = 0
+        audioController.playFile(playlistModel.fileUrlAt(0))
+    }
+
+    function formatTime(ms) {
+        var t = Math.floor(ms / 1000)
+        var m = Math.floor(t / 60)
+        var s = t % 60
+        return m + ":" + (s < 10 ? "0" : "") + s
+    }
+
     FileDialog {
         id: fileDialog
         title: "添加音频文件"
@@ -56,12 +68,6 @@ ApplicationWindow {
                 text: "\u2795 Add"
                 font.pixelSize: 13
                 onClicked: fileDialog.open()
-
-                palette.buttonText: "#1e1e1e"
-                background: Rectangle {
-                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
-                    radius: 4
-                }
             }
 
             Button {
@@ -69,20 +75,14 @@ ApplicationWindow {
                 font.pixelSize: 13
                 enabled: playlistModel.count > 0
                 onClicked: {
-                    var idx = playlistModel.currentIndex
-                    if (idx >= 0) {
-                        var removedUrl = playlistModel.fileUrlAt(idx)
-                        playlistModel.removeItem(idx)
-                        if (audioController.source.toString() === removedUrl.toString())
-                            audioController.stop()
-                    }
+                    var i = playlistModel.currentIndex
+                    if (i < 0) return
+                    var url = playlistModel.fileUrlAt(i)
+                    playlistModel.removeItem(i)
+                    if (audioController.source.toString() === url.toString())
+                        audioController.stop()
                 }
 
-                palette.buttonText: "#1e1e1e"
-                background: Rectangle {
-                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
-                    radius: 4
-                }
             }
 
             Button {
@@ -90,11 +90,6 @@ ApplicationWindow {
                 font.pixelSize: 13
                 onClicked: Qt.quit()
 
-                palette.buttonText: "#1e1e1e"
-                background: Rectangle {
-                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
-                    radius: 4
-                }
             }
 
             Item { Layout.fillWidth: true }
@@ -102,21 +97,10 @@ ApplicationWindow {
             Button {
                 text: "\u25B6 Play"
                 font.pixelSize: 13
-                enabled: (audioController.hasMedia && !audioController.isPlaying) || (!audioController.hasMedia && playlistModel.count > 0)
-                onClicked: {
-                    if (!audioController.hasMedia && playlistModel.count > 0) {
-                        playlistModel.currentIndex = 0
-                        audioController.playFile(playlistModel.fileUrlAt(0))
-                    } else {
-                        audioController.play()
-                    }
-                }
+                enabled: (!audioController.hasMedia && playlistModel.count > 0)
+                       || (audioController.hasMedia && !audioController.isPlaying)
+                onClicked: audioController.hasMedia ? audioController.play() : playFirst()
 
-                palette.buttonText: "#1e1e1e"
-                background: Rectangle {
-                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
-                    radius: 4
-                }
             }
 
             Button {
@@ -125,11 +109,6 @@ ApplicationWindow {
                 enabled: audioController.isPlaying
                 onClicked: audioController.pause()
 
-                palette.buttonText: "#1e1e1e"
-                background: Rectangle {
-                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
-                    radius: 4
-                }
             }
 
             Button {
@@ -138,11 +117,6 @@ ApplicationWindow {
                 enabled: audioController.hasMedia
                 onClicked: audioController.stop()
 
-                palette.buttonText: "#1e1e1e"
-                background: Rectangle {
-                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
-                    radius: 4
-                }
             }
         }
 
@@ -151,23 +125,15 @@ ApplicationWindow {
             Layout.fillWidth: true
             from: 0
             to: Math.max(audioController.duration, 1)
-            value: progressSlider.pressed ? progressSlider.value : audioController.position
+            value: pressed ? value : audioController.position
             onMoved: audioController.seek(value)
         }
 
         RowLayout {
             Layout.fillWidth: true
-            Label {
-                text: formatTime(audioController.position)
-                color: "#888888"
-                font.pixelSize: 11
-            }
+            Label { text: formatTime(audioController.position); color: "#888888"; font.pixelSize: 11 }
             Item { Layout.fillWidth: true }
-            Label {
-                text: formatTime(audioController.duration)
-                color: "#888888"
-                font.pixelSize: 11
-            }
+            Label { text: formatTime(audioController.duration);  color: "#888888"; font.pixelSize: 11 }
         }
 
         Label {
@@ -197,21 +163,19 @@ ApplicationWindow {
 
             delegate: ItemDelegate {
                 width: playlistView.width
-                highlighted: index === playlistModel.currentIndex
+                property bool cur: index === playlistModel.currentIndex
 
                 contentItem: Text {
                     text: fileName
-                    color: index === playlistModel.currentIndex ? "#1db954" : "#dddddd"
-                    font.bold: index === playlistModel.currentIndex
+                    color: cur ? "#1db954" : "#dddddd"
+                    font.bold: cur
                     verticalAlignment: Text.AlignVCenter
                     elide: Text.ElideRight
                 }
-
                 background: Rectangle {
-                    color: index === playlistModel.currentIndex ? "#2a2a2a" : "transparent"
+                    color: cur ? "#2a2a2a" : "transparent"
                     radius: 4
                 }
-
                 onClicked: {
                     playlistModel.currentIndex = index
                     audioController.playFile(filePath)
@@ -249,19 +213,10 @@ ApplicationWindow {
             Connections {
                 target: audioController
                 function onCurrentLyricIndexChanged() {
-                    if (audioController.currentLyricIndex >= 0) {
-                        lyricsView.positionViewAtIndex(
-                            audioController.currentLyricIndex, ListView.Center)
-                    }
+                    if (audioController.currentLyricIndex >= 0)
+                        lyricsView.positionViewAtIndex(audioController.currentLyricIndex, ListView.Center)
                 }
             }
         }
-    }
-
-    function formatTime(ms) {
-        var totalSeconds = Math.floor(ms / 1000)
-        var minutes = Math.floor(totalSeconds / 60)
-        var seconds = totalSeconds % 60
-        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds
     }
 }
