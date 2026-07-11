@@ -20,6 +20,8 @@ AudioController::AudioController(AudioEngine *engine, LyricModel *lyricModel,
             this, &AudioController::onEngineMetaDataChanged);
     connect(m_engine, &AudioEngine::errorOccurred,
             this, &AudioController::onEngineError);
+    connect(m_engine, &AudioEngine::sourceChanged,
+            this, &AudioController::sourceChanged);
 }
 
 QString AudioController::title() const       { return m_title; }
@@ -32,6 +34,7 @@ LyricModel* AudioController::lyricModel() const { return m_lyricModel; }
 QString AudioController::errorString() const { return m_error; }
 qint64 AudioController::position() const     { return m_engine->position(); }
 qint64 AudioController::duration() const     { return m_engine->duration(); }
+QUrl AudioController::source() const          { return m_engine->source(); }
 
 void AudioController::playFile(const QUrl &url)
 {
@@ -73,6 +76,22 @@ void AudioController::pause()
 void AudioController::stop()
 {
     m_engine->stop();
+    m_engine->setSource(QUrl());
+    m_title.clear();
+    m_artist.clear();
+    m_album.clear();
+    m_error.clear();
+    m_currentLyricIndex = -1;
+    m_lyricModel->clear();
+    m_playPending = false;
+    emit titleChanged();
+    emit artistChanged();
+    emit albumChanged();
+    emit hasMediaChanged();
+    emit currentLyricIndexChanged();
+    emit positionChanged();
+    emit durationChanged();
+    emit sourceChanged();
 }
 
 void AudioController::seek(qint64 pos)

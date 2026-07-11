@@ -63,8 +63,13 @@ ApplicationWindow {
                 font.pixelSize: 13
                 enabled: playlistModel.count > 0
                 onClicked: {
-                    if (playlistModel.currentIndex >= 0)
-                        playlistModel.removeItem(playlistModel.currentIndex)
+                    var idx = playlistModel.currentIndex
+                    if (idx >= 0) {
+                        var removedUrl = playlistModel.fileUrlAt(idx)
+                        playlistModel.removeItem(idx)
+                        if (audioController.source.toString() === removedUrl.toString())
+                            audioController.stop()
+                    }
                 }
             }
 

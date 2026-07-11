@@ -9,7 +9,7 @@
 class AudioController : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString title READ title NOTIFY titleChanged)
+    Q_PROPERTY(QUrl source READ source NOTIFY sourceChanged)
     Q_PROPERTY(QString artist READ artist NOTIFY artistChanged)
     Q_PROPERTY(QString album READ album NOTIFY albumChanged)
     Q_PROPERTY(bool isPlaying READ isPlaying NOTIFY isPlayingChanged)
@@ -42,6 +42,8 @@ public:
     Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(qint64 pos);
 
+    QUrl source() const;
+
 signals:
     void titleChanged();
     void artistChanged();
@@ -52,6 +54,7 @@ signals:
     void errorOccurred();
     void positionChanged();
     void durationChanged();
+    void sourceChanged();
 
 private slots:
     void onEngineStateChanged();
