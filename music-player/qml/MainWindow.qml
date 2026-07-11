@@ -56,6 +56,12 @@ ApplicationWindow {
                 text: "\u2795 Add"
                 font.pixelSize: 13
                 onClicked: fileDialog.open()
+
+                palette.buttonText: "#1e1e1e"
+                background: Rectangle {
+                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
+                    radius: 4
+                }
             }
 
             Button {
@@ -71,12 +77,24 @@ ApplicationWindow {
                             audioController.stop()
                     }
                 }
+
+                palette.buttonText: "#1e1e1e"
+                background: Rectangle {
+                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
+                    radius: 4
+                }
             }
 
             Button {
                 text: "\u23FB Quit"
                 font.pixelSize: 13
                 onClicked: Qt.quit()
+
+                palette.buttonText: "#1e1e1e"
+                background: Rectangle {
+                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
+                    radius: 4
+                }
             }
 
             Item { Layout.fillWidth: true }
@@ -93,6 +111,12 @@ ApplicationWindow {
                         audioController.play()
                     }
                 }
+
+                palette.buttonText: "#1e1e1e"
+                background: Rectangle {
+                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
+                    radius: 4
+                }
             }
 
             Button {
@@ -100,6 +124,12 @@ ApplicationWindow {
                 font.pixelSize: 13
                 enabled: audioController.isPlaying
                 onClicked: audioController.pause()
+
+                palette.buttonText: "#1e1e1e"
+                background: Rectangle {
+                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
+                    radius: 4
+                }
             }
 
             Button {
@@ -107,6 +137,12 @@ ApplicationWindow {
                 font.pixelSize: 13
                 enabled: audioController.hasMedia
                 onClicked: audioController.stop()
+
+                palette.buttonText: "#1e1e1e"
+                background: Rectangle {
+                    color: parent.enabled ? "#ffffff" : "#aaaaaa"
+                    radius: 4
+                }
             }
         }
 
