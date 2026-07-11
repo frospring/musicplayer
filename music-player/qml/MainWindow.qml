@@ -50,11 +50,53 @@ ApplicationWindow {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 8
+            spacing: 6
 
             Button {
-                text: "添加文件"
                 onClicked: fileDialog.open()
+
+                contentItem: Column {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    Label {
+                        text: "\u2795"
+                        font.pixelSize: 16
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Label {
+                        text: "Add"
+                        font.pixelSize: 10
+                        color: "#cccccc"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+
+            Button {
+                enabled: playlistModel.count > 0
+                onClicked: {
+                    if (playlistModel.currentIndex >= 0) {
+                        playlistModel.removeItem(playlistModel.currentIndex)
+                    }
+                }
+
+                contentItem: Column {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    Label {
+                        text: "\u2715"
+                        font.pixelSize: 16
+                        color: parent.parent.enabled ? "#ffffff" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Label {
+                        text: "Del"
+                        font.pixelSize: 10
+                        color: parent.parent.enabled ? "#cccccc" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
             }
 
             Item { Layout.fillWidth: true }
@@ -127,6 +169,27 @@ ApplicationWindow {
                         text: "Stop"
                         font.pixelSize: 11
                         color: parent.parent.enabled ? "#cccccc" : "#666666"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+
+            Button {
+                onClicked: Qt.quit()
+
+                contentItem: Column {
+                    spacing: 2
+                    anchors.centerIn: parent
+                    Label {
+                        text: "\u23FB"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Label {
+                        text: "Quit"
+                        font.pixelSize: 11
+                        color: "#cccccc"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
                 }
