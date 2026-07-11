@@ -50,58 +50,35 @@ ApplicationWindow {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 6
+            spacing: 4
 
             Button {
+                text: "\u2795 Add"
+                font.pixelSize: 13
                 onClicked: fileDialog.open()
+            }
 
-                contentItem: Column {
-                    spacing: 2
-                    anchors.centerIn: parent
-                    Label {
-                        text: "\u2795"
-                        font.pixelSize: 16
-                        color: "#ffffff"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Label {
-                        text: "Add"
-                        font.pixelSize: 10
-                        color: "#cccccc"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
+            Button {
+                text: "\u2715 Del"
+                font.pixelSize: 13
+                enabled: playlistModel.count > 0
+                onClicked: {
+                    if (playlistModel.currentIndex >= 0)
+                        playlistModel.removeItem(playlistModel.currentIndex)
                 }
             }
 
             Button {
-                enabled: playlistModel.count > 0
-                onClicked: {
-                    if (playlistModel.currentIndex >= 0) {
-                        playlistModel.removeItem(playlistModel.currentIndex)
-                    }
-                }
-
-                contentItem: Column {
-                    spacing: 2
-                    anchors.centerIn: parent
-                    Label {
-                        text: "\u2715"
-                        font.pixelSize: 16
-                        color: parent.parent.enabled ? "#ffffff" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Label {
-                        text: "Del"
-                        font.pixelSize: 10
-                        color: parent.parent.enabled ? "#cccccc" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
+                text: "\u23FB Quit"
+                font.pixelSize: 13
+                onClicked: Qt.quit()
             }
 
             Item { Layout.fillWidth: true }
 
             Button {
+                text: "\u25B6 Play"
+                font.pixelSize: 13
                 enabled: (audioController.hasMedia && !audioController.isPlaying) || (!audioController.hasMedia && playlistModel.count > 0)
                 onClicked: {
                     if (!audioController.hasMedia && playlistModel.count > 0) {
@@ -111,88 +88,20 @@ ApplicationWindow {
                         audioController.play()
                     }
                 }
-
-                contentItem: Column {
-                    spacing: 2
-                    anchors.centerIn: parent
-                    Label {
-                        text: "\u25B6"
-                        font.pixelSize: 18
-                        color: parent.parent.enabled ? "#ffffff" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Label {
-                        text: "Play"
-                        font.pixelSize: 11
-                        color: parent.parent.enabled ? "#cccccc" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
             }
 
             Button {
+                text: "\u23F8 Pause"
+                font.pixelSize: 13
                 enabled: audioController.isPlaying
                 onClicked: audioController.pause()
-
-                contentItem: Column {
-                    spacing: 2
-                    anchors.centerIn: parent
-                    Label {
-                        text: "\u23F8"
-                        font.pixelSize: 18
-                        color: parent.parent.enabled ? "#ffffff" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Label {
-                        text: "Pause"
-                        font.pixelSize: 11
-                        color: parent.parent.enabled ? "#cccccc" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
             }
 
             Button {
+                text: "\u23F9 Stop"
+                font.pixelSize: 13
                 enabled: audioController.hasMedia
                 onClicked: audioController.stop()
-
-                contentItem: Column {
-                    spacing: 2
-                    anchors.centerIn: parent
-                    Label {
-                        text: "\u23F9"
-                        font.pixelSize: 18
-                        color: parent.parent.enabled ? "#ffffff" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Label {
-                        text: "Stop"
-                        font.pixelSize: 11
-                        color: parent.parent.enabled ? "#cccccc" : "#666666"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
-            }
-
-            Button {
-                onClicked: Qt.quit()
-
-                contentItem: Column {
-                    spacing: 2
-                    anchors.centerIn: parent
-                    Label {
-                        text: "\u23FB"
-                        font.pixelSize: 18
-                        color: "#ffffff"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Label {
-                        text: "Quit"
-                        font.pixelSize: 11
-                        color: "#cccccc"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
             }
         }
 
