@@ -23,6 +23,22 @@ ApplicationWindow {
         return m + ":" + (s < 10 ? "0" : "") + s
     }
 
+    function playPrevious() {
+        if (playlistModel.count === 0) return
+        var idx = playlistModel.currentIndex - 1
+        if (idx < 0) idx = playlistModel.count - 1
+        playlistModel.currentIndex = idx
+        audioController.playFile(playlistModel.fileUrlAt(idx))
+    }
+
+    function playNext() {
+        if (playlistModel.count === 0) return
+        var idx = playlistModel.currentIndex + 1
+        if (idx >= playlistModel.count) idx = 0
+        playlistModel.currentIndex = idx
+        audioController.playFile(playlistModel.fileUrlAt(idx))
+    }
+
     FileDialog {
         id: fileDialog
         title: "添加音频文件"
@@ -134,6 +150,41 @@ ApplicationWindow {
             Label { text: formatTime(audioController.position); color: "#888888"; font.pixelSize: 11 }
             Item { Layout.fillWidth: true }
             Label { text: formatTime(audioController.duration);  color: "#888888"; font.pixelSize: 11 }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+
+            Button {
+                text: "\u23EE Prev"
+                font.pixelSize: 13
+                enabled: playlistModel.count > 0
+                onClicked: playPrevious()
+            }
+
+            Button {
+                text: "Next \u23ED"
+                font.pixelSize: 13
+                enabled: playlistModel.count > 0
+                onClicked: playNext()
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Label {
+                text: "\uD83D\uDD0A"
+                font.pixelSize: 14
+            }
+
+            Slider {
+                id: volumeSlider
+                Layout.preferredWidth: 100
+                from: 0
+                to: 100
+                value: audioController.volume * 100
+                onMoved: audioController.setVolume(value / 100)
+            }
         }
 
         Label {

@@ -35,6 +35,7 @@ int AudioEngine::state() const             { return static_cast<int>(m_player->p
 bool AudioEngine::isLoaded() const         { return m_player->mediaStatus() == QMediaPlayer::LoadedMedia
                                                 || m_player->mediaStatus() == QMediaPlayer::BufferedMedia; }
 QString AudioEngine::error() const         { return m_error; }
+qreal AudioEngine::volume() const           { return m_output->volume(); }
 QMediaMetaData AudioEngine::metaData() const { return m_player->metaData(); }
 
 void AudioEngine::setSource(const QUrl &url)
@@ -48,3 +49,4 @@ void AudioEngine::play()    { m_player->play(); }
 void AudioEngine::pause()   { m_player->pause(); }
 void AudioEngine::stop()    { m_player->stop(); }
 void AudioEngine::seek(qint64 position) { m_player->setPosition(position); }
+void AudioEngine::setVolume(qreal vol)  { m_output->setVolume(vol); emit volumeChanged(); }

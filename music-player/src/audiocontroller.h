@@ -19,6 +19,7 @@ class AudioController : public QObject
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorOccurred)
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
+    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
 public:
     explicit AudioController(AudioEngine *engine, LyricModel *lyricModel,
@@ -34,6 +35,7 @@ public:
     QString errorString() const;
     qint64 position() const;
     qint64 duration() const;
+    qreal volume() const;
 
     Q_INVOKABLE void playFile(const QUrl &url);
     Q_INVOKABLE void togglePlayPause();
@@ -41,6 +43,7 @@ public:
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(qint64 pos);
+    Q_INVOKABLE void setVolume(qreal vol);
 
     QUrl source() const;
 
@@ -55,6 +58,7 @@ signals:
     void positionChanged();
     void durationChanged();
     void sourceChanged();
+    void volumeChanged();
 
 private slots:
     void onEngineStateChanged();

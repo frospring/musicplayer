@@ -18,6 +18,7 @@ class AudioEngine : public QObject
     Q_PROPERTY(int state READ state NOTIFY stateChanged)
     Q_PROPERTY(bool loaded READ isLoaded NOTIFY loadedChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorOccurred)
+    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
 public:
     // 播放状态枚举
@@ -32,6 +33,7 @@ public:
     int state() const;
     bool isLoaded() const;
     QString error() const;
+    qreal volume() const;
 
     // 获取原始元数据 (供上层解析)
     QMediaMetaData metaData() const;
@@ -42,6 +44,7 @@ public slots:
     void pause();
     void stop();
     void seek(qint64 position);
+    void setVolume(qreal vol);
 
 signals:
     void sourceChanged();
@@ -51,6 +54,7 @@ signals:
     void loadedChanged();
     void errorOccurred(const QString &error);
     void metaDataChanged();
+    void volumeChanged();
 
 private:
     QMediaPlayer *m_player;

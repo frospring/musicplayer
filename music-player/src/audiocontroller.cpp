@@ -22,6 +22,8 @@ AudioController::AudioController(AudioEngine *engine, LyricModel *lyricModel,
             this, &AudioController::onEngineError);
     connect(m_engine, &AudioEngine::sourceChanged,
             this, &AudioController::sourceChanged);
+    connect(m_engine, &AudioEngine::volumeChanged,
+            this, &AudioController::volumeChanged);
 }
 
 QString AudioController::title() const       { return m_title; }
@@ -35,6 +37,7 @@ QString AudioController::errorString() const { return m_error; }
 qint64 AudioController::position() const     { return m_engine->position(); }
 qint64 AudioController::duration() const     { return m_engine->duration(); }
 QUrl AudioController::source() const          { return m_engine->source(); }
+qreal AudioController::volume() const          { return m_engine->volume(); }
 
 void AudioController::playFile(const QUrl &url)
 {
@@ -97,6 +100,11 @@ void AudioController::stop()
 void AudioController::seek(qint64 pos)
 {
     m_engine->seek(pos);
+}
+
+void AudioController::setVolume(qreal vol)
+{
+    m_engine->setVolume(vol);
 }
 
 void AudioController::onEngineStateChanged()
