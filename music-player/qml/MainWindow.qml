@@ -11,6 +11,21 @@ ApplicationWindow {
     visible: true
     color: "#1e1e1e"
 
+    Shortcut {
+        sequence: "Space"
+        onActivated: audioController.togglePlayPause()
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.NoButton
+        onWheel: function(wheel) {
+            var delta = wheel.angleDelta.y / 120
+            var newVol = Math.max(0, Math.min(100, audioController.volume * 100 + delta * 5))
+            audioController.setVolume(newVol / 100)
+        }
+    }
+
     function playFirst() {
         playlistModel.currentIndex = 0
         audioController.playFile(playlistModel.fileUrlAt(0))
@@ -52,14 +67,42 @@ ApplicationWindow {
         anchors.margins: 16
         spacing: 10
 
-        Label {
-            text: audioController.title || "未在播放"
-            font.pixelSize: 22
-            font.bold: true
-            color: "#ffffff"
+        Item {
             Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideRight
+            Layout.preferredHeight: titleText.height
+            clip: true
+
+            Label {
+                id: titleText
+                text: {
+                    if (audioController.isPlaying || !audioController.hasMedia)
+                        return audioController.title || "未在播放"
+                    return "暂停播放"
+                }
+                font.pixelSize: 22
+                font.bold: true
+                color: "#ffffff"
+            }
+
+            SequentialAnimation on x {
+                id: scrollAnim
+                running: audioController.isPlaying
+                           && titleText.width > parent.width
+                           && titleText.visible
+                loops: Animation.Infinite
+
+                PauseAnimation { duration: 1500 }
+
+                ScriptAction { script: titleText.x = parent.width }
+
+                NumberAnimation {
+                    target: titleText
+                    property: "x"
+                    from: parent.width
+                    to: -titleText.width
+                    duration: Math.max(4000, titleText.width * 9)
+                }
+            }
         }
 
         Label {
@@ -211,6 +254,14 @@ ApplicationWindow {
             model: playlistModel
             clip: true
             spacing: 2
+
+            Label {
+                anchors.centerIn: parent
+                text: "点击 \u2795 Add 按钮添加歌曲"
+                font.pixelSize: 14
+                color: "#666666"
+                visible: playlistModel.count === 0
+            }
 
             delegate: ItemDelegate {
                 width: playlistView.width
