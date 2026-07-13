@@ -121,61 +121,93 @@ ApplicationWindow {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: 6
 
-            Button {
-                text: "\u2795 Add"
-                font.pixelSize: 13
-                onClicked: fileDialog.open()
-            }
+            Rectangle {
+                color: "#5a5a5a"
+                radius: 6
+                height: fileRow.implicitHeight + 8
+                width: fileRow.implicitWidth + 8
 
-            Button {
-                text: "\u2715 Del"
-                font.pixelSize: 13
-                enabled: playlistModel.count > 0
-                onClicked: {
-                    var i = playlistModel.currentIndex
-                    if (i < 0) return
-                    var url = playlistModel.fileUrlAt(i)
-                    playlistModel.removeItem(i)
-                    if (audioController.source.toString() === url.toString())
-                        audioController.stop()
+                Row {
+                    id: fileRow
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    Button {
+                        text: "\u2795 Add"
+                        font.pixelSize: 13
+                        onClicked: fileDialog.open()
+                    }
+
+                    Button {
+                        text: "\u2715 Del"
+                        font.pixelSize: 13
+                        enabled: playlistModel.count > 0
+                        onClicked: {
+                            var i = playlistModel.currentIndex
+                            if (i < 0) return
+                            var url = playlistModel.fileUrlAt(i)
+                            playlistModel.removeItem(i)
+                            if (audioController.source.toString() === url.toString())
+                                audioController.stop()
+                        }
+                    }
+
+                    Button {
+                        text: "\u23FB Quit"
+                        font.pixelSize: 13
+                        onClicked: Qt.quit()
+                        background: Rectangle {
+                            color: parent.down ? "#dd7777" : "#cc6666"
+                            radius: 4
+                        }
+                        contentItem: Text {
+                            text: parent.text
+                            color: "#ffffff"
+                            font: parent.font
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
                 }
-
-            }
-
-            Button {
-                text: "\u23FB Quit"
-                font.pixelSize: 13
-                onClicked: Qt.quit()
-
             }
 
             Item { Layout.fillWidth: true }
 
-            Button {
-                text: "\u25B6 Play"
-                font.pixelSize: 13
-                enabled: (!audioController.hasMedia && playlistModel.count > 0)
-                       || (audioController.hasMedia && !audioController.isPlaying)
-                onClicked: audioController.hasMedia ? audioController.play() : playFirst()
+            Rectangle {
+                color: "#2a4a6a"
+                radius: 6
+                height: playRow.implicitHeight + 8
+                width: playRow.implicitWidth + 8
 
-            }
+                Row {
+                    id: playRow
+                    anchors.centerIn: parent
+                    spacing: 4
 
-            Button {
-                text: "\u23F8 Pause"
-                font.pixelSize: 13
-                enabled: audioController.isPlaying
-                onClicked: audioController.pause()
+                    Button {
+                        text: "\u25B6 Play"
+                        font.pixelSize: 13
+                        enabled: (!audioController.hasMedia && playlistModel.count > 0)
+                               || (audioController.hasMedia && !audioController.isPlaying)
+                        onClicked: audioController.hasMedia ? audioController.play() : playFirst()
+                    }
 
-            }
+                    Button {
+                        text: "\u23F8 Pause"
+                        font.pixelSize: 13
+                        enabled: audioController.isPlaying
+                        onClicked: audioController.pause()
+                    }
 
-            Button {
-                text: "\u23F9 Stop"
-                font.pixelSize: 13
-                enabled: audioController.hasMedia
-                onClicked: audioController.stop()
-
+                    Button {
+                        text: "\u23F9 Stop"
+                        font.pixelSize: 13
+                        enabled: audioController.hasMedia
+                        onClicked: audioController.stop()
+                    }
+                }
             }
         }
 
