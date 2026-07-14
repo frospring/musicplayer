@@ -366,6 +366,11 @@ ApplicationWindow {
                 color: index === audioController.currentLyricIndex ? "#1db954" : "#777777"
                 padding: 4
                 wrapMode: Text.Wrap
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: audioController.seek(lyricTime)
+                }
             }
 
             Connections {
