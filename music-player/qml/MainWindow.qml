@@ -9,7 +9,16 @@ ApplicationWindow {
     height: 700
     title: "Music Player"
     visible: true
-    color: "#1e1e1e"
+
+    background: Rectangle {
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#1a1a2e" }
+            GradientStop { position: 0.5; color: "#16213e" }
+            GradientStop { position: 1.0; color: "#0f3460" }
+        }
+    }
+
+    property real savedVolume: 1.0
 
     Shortcut {
         sequence: "Space"
@@ -75,8 +84,10 @@ ApplicationWindow {
             Label {
                 id: titleText
                 text: {
-                    if (audioController.isPlaying || !audioController.hasMedia)
-                        return audioController.title || "未在播放"
+                    if (audioController.isPlaying)
+                        return "正在播放"
+                    if (!audioController.hasMedia)
+                        return "未播放"
                     return "暂停播放"
                 }
                 font.pixelSize: 22
@@ -248,8 +259,21 @@ ApplicationWindow {
             Item { Layout.fillWidth: true }
 
             Label {
-                text: "\uD83D\uDD0A"
+                id: volumeIcon
+                text: audioController.volume > 0 ? "\uD83D\uDD0A" : "\uD83D\uDD07"
                 font.pixelSize: 14
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (audioController.volume > 0) {
+                            savedVolume = audioController.volume
+                            audioController.setVolume(0)
+                        } else {
+                            audioController.setVolume(savedVolume)
+                        }
+                    }
+                }
             }
 
             Slider {
