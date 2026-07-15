@@ -18,9 +18,6 @@
 
 PlayerController 管播放和元数据，PlaylistModel 管播放列表，LyricsModel 管歌词数据，LyricsParser 管 LRC/VTT 文件解析。C++ 类通过 QML_ELEMENT 自动注册到 QML。构建用 cmake，指针输入全部用 TapHandler 和 WheelHandler，没有 MouseArea。
 
-怎么部署
-
-构建完之后 install 一下，然后从系统菜单启动就行。
 
 开发过程
 
