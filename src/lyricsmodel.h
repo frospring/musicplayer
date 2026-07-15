@@ -18,7 +18,8 @@ class LyricsModel : public QAbstractListModel
 public:
     enum Roles {
         LyricTextRole = Qt::UserRole + 1,
-        IsCurrentRole
+        IsCurrentRole,
+        TimestampRole
     };
 
     explicit LyricsModel(QObject *parent = nullptr);

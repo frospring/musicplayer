@@ -26,6 +26,8 @@ QVariant LyricsModel::data(const QModelIndex &index, int role) const
         return m_entries[index.row()].text;
     case IsCurrentRole:
         return index.row() == m_currentIndex;
+    case TimestampRole:
+        return m_entries[index.row()].timestampMs;
     }
     return {};
 }
@@ -35,6 +37,7 @@ QHash<int, QByteArray> LyricsModel::roleNames() const
     return {
         {LyricTextRole, "lyricText"},
         {IsCurrentRole, "isCurrent"},
+        {TimestampRole, "timestampMs"},
     };
 }
 

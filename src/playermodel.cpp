@@ -76,10 +76,17 @@ void PlaylistModel::remove(int index)
     m_files.removeAt(index);
     endRemoveRows();
 
-    if (m_currentIndex == index)
-        setCurrentIndex(-1);
-    else if (m_currentIndex > index)
+    int oldIndex = m_currentIndex;
+    if (m_files.isEmpty()) {
+        m_currentIndex = -1;
+    } else if (m_currentIndex == index) {
+        m_currentIndex = -1;
+    } else if (m_currentIndex > index) {
         m_currentIndex--;
+    }
+
+    if (m_currentIndex != oldIndex)
+        emit currentIndexChanged();
 
     emit countChanged();
 }

@@ -23,6 +23,7 @@ ApplicationWindow {
     readonly property int modeSingle: 1
     readonly property int modeShuffle: 2
     property int playMode: 0
+    property real savedVolume: 0.7
 
     property string statusText: {
         if (playlistModel.count === 0)
@@ -30,6 +31,16 @@ ApplicationWindow {
         if (player.title === "-" && player.artist === "-")
             return "加载中..."
         return player.artist !== "-" ? player.artist : "未知艺术家"
+    }
+
+    Shortcut {
+        sequences: ["Space", "Media Play", "Media Pause"]
+        onActivated: {
+            if (playlistModel.currentIndex < 0 && playlistModel.count > 0)
+                playlistModel.currentIndex = 0
+            else
+                player.toggle()
+        }
     }
 
     function formatTime(ms) {
@@ -103,6 +114,15 @@ ApplicationWindow {
             playlistModel.addFiles(urls)
         }
 
+        WheelHandler {
+            orientation: Qt.Vertical
+            onWheel: function(event) {
+                var delta = event.angleDelta.y / 120
+                var newVol = Math.max(0, Math.min(1, player.volume + delta * 0.05))
+                player.volume = newVol
+            }
+        }
+
         // ——— Main Layout ———
 
         Item {
@@ -160,6 +180,16 @@ ApplicationWindow {
                                 font.pixelSize: 13
                                 color: "#8899aa"
                                 elide: Text.ElideRight
+                            }
+
+                            Label {
+                                Layout.fillWidth: true
+                                visible: player.errorString !== ""
+                                text: "错误: " + player.errorString
+                                font.pixelSize: 12
+                                color: "#e74c3c"
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
                             }
                         }
                     }
@@ -300,6 +330,13 @@ ApplicationWindow {
                         delegate: Item {
                             width: ListView.view.width
                             height: lyricText.implicitHeight + 10
+
+                            TapHandler {
+                                onTapped: {
+                                    if (model.timestampMs >= 0)
+                                        player.seek(model.timestampMs)
+                                }
+                            }
 
                             Rectangle {
                                 visible: model.isCurrent
@@ -446,6 +483,27 @@ ApplicationWindow {
                     }
 
                     Button {
+                        text: "⏹"
+                        flat: true
+                        font.pixelSize: 18
+                        enabled: playlistModel.currentIndex >= 0
+                        onClicked: player.stop()
+                        contentItem: Text {
+                            text: parent.text
+                            color: parent.hovered ? "#e74c3c" : "#999"
+                            font.pixelSize: 18
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitWidth: 36
+                            implicitHeight: 36
+                            color: parent.hovered ? "#00000006" : "transparent"
+                            radius: 18
+                        }
+                    }
+
+                    Button {
                         text: "⏭"
                         flat: true
                         font.pixelSize: 16
@@ -471,7 +529,14 @@ ApplicationWindow {
                         text: "🔊"
                         flat: true
                         font.pixelSize: 14
-                        onClicked: volumeSlider.value = volumeSlider.value === 0 ? 0.7 : 0
+                        onClicked: {
+                            if (player.volume > 0) {
+                                savedVolume = player.volume
+                                player.volume = 0
+                            } else {
+                                player.volume = savedVolume
+                            }
+                        }
                         contentItem: Text {
                             text: parent.text
                             color: parent.hovered ? "#14b8a6" : "#888"
@@ -668,6 +733,30 @@ ApplicationWindow {
                                 font.pixelSize: 13
                                 color: index === playlistModel.currentIndex ? "#14b8a6" : "#555"
                                 elide: Text.ElideRight
+                            }
+                            Button {
+                                visible: parent.parent.hovered
+                                text: "✕"
+                                flat: true
+                                font.pixelSize: 11
+                                onClicked: {
+                                    if (index === playlistModel.currentIndex)
+                                        player.stop()
+                                    playlistModel.remove(index)
+                                }
+                                contentItem: Text {
+                                    text: parent.text
+                                    color: parent.hovered ? "#e74c3c" : "#999"
+                                    font.pixelSize: 11
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                background: Rectangle {
+                                    implicitWidth: 22
+                                    implicitHeight: 22
+                                    color: parent.hovered ? "#e74c3c12" : "transparent"
+                                    radius: 11
+                                }
                             }
                         }
 

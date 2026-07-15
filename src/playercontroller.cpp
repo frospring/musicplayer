@@ -42,6 +42,11 @@ PlayerController::PlayerController(QObject *parent)
 
         emit metaDataChanged();
     });
+
+    connect(m_player, &QMediaPlayer::errorOccurred, this, [this](QMediaPlayer::Error /*err*/, const QString &errStr) {
+        m_error = errStr;
+        emit errorOccurred();
+    });
 }
 
 QUrl PlayerController::source() const { return m_source; }
@@ -53,6 +58,7 @@ void PlayerController::setSource(const QUrl &url)
     m_title = "-";
     m_artist = "-";
     m_album = "-";
+    m_error.clear();
     m_player->setSource(url);
     emit sourceChanged();
     emit metaDataChanged();
@@ -87,4 +93,22 @@ void PlayerController::toggle()
     else m_player->play();
 }
 
+void PlayerController::stop()
+{
+    m_player->stop();
+    m_source.clear();
+    m_title = "-";
+    m_artist = "-";
+    m_album = "-";
+    m_error.clear();
+    m_player->setSource(QUrl());
+    emit sourceChanged();
+    emit metaDataChanged();
+    emit playingChanged();
+    emit positionChanged();
+    emit durationChanged();
+}
+
 void PlayerController::seek(qint64 pos) { m_player->setPosition(pos); }
+
+QString PlayerController::errorString() const { return m_error; }

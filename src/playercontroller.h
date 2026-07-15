@@ -20,6 +20,7 @@ class PlayerController : public QObject
     Q_PROPERTY(QString artist READ artist NOTIFY metaDataChanged FINAL)
     Q_PROPERTY(QString album READ album NOTIFY metaDataChanged FINAL)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged FINAL)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorOccurred FINAL)
 
 public:
     explicit PlayerController(QObject *parent = nullptr);
@@ -35,11 +36,13 @@ public:
     QString album() const;
     float volume() const;
     void setVolume(float vol);
+    QString errorString() const;
 
 public slots:
     void play();
     void pause();
     void toggle();
+    void stop();
     void seek(qint64 pos);
 
 signals:
@@ -50,6 +53,7 @@ signals:
     void metaDataChanged();
     void ended();
     void volumeChanged();
+    void errorOccurred();
 
 private:
     QMediaPlayer *m_player;
@@ -58,4 +62,5 @@ private:
     QString m_title;
     QString m_artist;
     QString m_album;
+    QString m_error;
 };
